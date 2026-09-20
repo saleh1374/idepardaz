@@ -7,18 +7,18 @@ const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 interface MakerService {
   id: number
   title: string
-  description: string
+  description: string | null
   price: number
   unit: string
   leadTimeDays: number
 }
 
 interface MakerDetail {
-  id: number
+  id: string
   displayName: string
-  bio: string
-  specialties: string[]
-  city: string
+  bio: string | null
+  specialties: string | null  // JSON array string from API
+  city: string | null
   avatarUrl: string | null
   isVerified: boolean
   rating: number
@@ -26,6 +26,11 @@ interface MakerDetail {
   userName: string
   createdAt: string
   services: MakerService[]
+}
+
+function parseSpecialties(raw: string | null): string[] {
+  if (!raw) return []
+  try { return JSON.parse(raw) as string[] } catch { return [] }
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -40,6 +45,11 @@ function StarRating({ rating }: { rating: number }) {
       <span className="mr-1 font-mono text-ink-500" dir="ltr">{rating.toFixed(1)}</span>
     </span>
   )
+}
+
+const unitLabel = (u: string) => {
+  const map: Record<string, string> = { per_item: 'به ازای هر عدد', per_hour: 'به ازای ساعت', fixed: 'ثابت' }
+  return map[u] ?? u
 }
 
 export default function MakerDetailPage() {
@@ -77,7 +87,7 @@ export default function MakerDetailPage() {
       const res = await fetch(`${BASE}/makers/quote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ makerId: Number(id), description: quoteDesc.trim() }),
+        body: JSON.stringify({ makerId: id, description: quoteDesc.trim() }),
       })
       if (!res.ok) throw new Error(`خطای سرور (${res.status})`)
       setQuoteResult('درخواست نقل‌قول با موفقیت ارسال شد.')
@@ -93,8 +103,8 @@ export default function MakerDetailPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-        <div className="card h-40 animate-pulse bg-ink-100" />
-        <div className="card mt-4 h-60 animate-pulse bg-ink-100" />
+        <div className="h-40 animate-pulse rounded-xl bg-ink-100" />
+        <div className="mt-4 h-60 animate-pulse rounded-xl bg-ink-100" />
       </div>
     )
   }
@@ -103,9 +113,9 @@ export default function MakerDetailPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
-          {error}
+          ❌ {error}
         </div>
-        <Link to="/makers" className="btn-outline mt-4 inline-flex text-sm">
+        <Link to="/makers" className="mt-4 inline-flex rounded-lg border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50">
           ← بازگشت به فهرست
         </Link>
       </div>
@@ -114,6 +124,8 @@ export default function MakerDetailPage() {
 
   if (!maker) return null
 
+  const specs = parseSpecialties(maker.specialties)
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <Link to="/makers" className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
@@ -121,13 +133,13 @@ export default function MakerDetailPage() {
       </Link>
 
       {/* Header */}
-      <div className="card animate-fadeInUp p-6">
+      <div className="animate-fadeInUp rounded-xl border border-ink-200 bg-white p-6 shadow-sm">
         <div className="flex items-start gap-4">
           {maker.avatarUrl ? (
             <img src={maker.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
           ) : (
             <span className="grid h-16 w-16 place-items-center rounded-full bg-brand-100 text-2xl font-bold text-brand-700">
-              {maker.displayName.charAt(0)}
+              {maker.displayName?.charAt(0) ?? '?'}
             </span>
           )}
           <div className="flex-1">
@@ -148,7 +160,7 @@ export default function MakerDetailPage() {
           <button
             type="button"
             onClick={() => setQuoteOpen(true)}
-            className="btn-primary shrink-0 px-5 py-2.5 text-sm"
+            className="shrink-0 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-brand-700"
           >
             📨 درخواست نقل‌قول
           </button>
@@ -158,9 +170,9 @@ export default function MakerDetailPage() {
           <p className="mt-4 text-sm leading-7 text-ink-600">{maker.bio}</p>
         )}
 
-        {maker.specialties.length > 0 && (
+        {specs.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {maker.specialties.map((s) => (
+            {specs.map((s) => (
               <span key={s} className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
                 {s}
               </span>
@@ -174,8 +186,8 @@ export default function MakerDetailPage() {
       </div>
 
       {/* Services */}
-      <div className="card animate-fadeInUp mt-6 p-6">
-        <h2 className="text-lg font-bold text-ink-900">خدمات</h2>
+      <div className="mt-6 rounded-xl border border-ink-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-ink-900">🛠️ خدمات</h2>
         <p className="mt-1 text-xs text-ink-400">{maker.services.length} خدمت</p>
 
         {maker.services.length > 0 ? (
@@ -194,9 +206,9 @@ export default function MakerDetailPage() {
                 {maker.services.map((s) => (
                   <tr key={s.id} className="border-b border-ink-100 last:border-0">
                     <td className="py-3 pr-0 font-semibold text-ink-800">{s.title}</td>
-                    <td className="max-w-[200px] truncate py-3 text-xs text-ink-500">{s.description}</td>
+                    <td className="max-w-[200px] truncate py-3 text-xs text-ink-500">{s.description ?? '—'}</td>
                     <td className="py-3 font-bold text-brand-700">{formatPrice(s.price)}</td>
-                    <td className="py-3 text-ink-600">{s.unit}</td>
+                    <td className="py-3 text-ink-600">{unitLabel(s.unit)}</td>
                     <td className="py-3 pl-0 text-ink-600" dir="ltr">{s.leadTimeDays} روز</td>
                   </tr>
                 ))}
@@ -211,9 +223,9 @@ export default function MakerDetailPage() {
       {/* Quote modal */}
       {quoteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="card w-full max-w-md bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-ink-900">درخواست نقل‌قول</h2>
+              <h2 className="text-lg font-bold text-ink-900">📨 درخواست نقل‌قول</h2>
               <button
                 type="button"
                 onClick={() => { setQuoteOpen(false); setQuoteResult(null) }}
@@ -242,21 +254,21 @@ export default function MakerDetailPage() {
                   onChange={(e) => setQuoteDesc(e.target.value)}
                   rows={4}
                   placeholder="توضیح دهید چه چیزی نیاز دارید..."
-                  className="input w-full"
+                  className="w-full rounded-lg border border-ink-200 px-3 py-2 text-sm text-ink-800 placeholder:text-ink-400"
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => { setQuoteOpen(false); setQuoteResult(null) }}
-                  className="btn-outline px-4 py-2 text-sm"
+                  className="rounded-lg border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50"
                 >
                   انصراف
                 </button>
                 <button
                   type="submit"
                   disabled={quoteSending}
-                  className="btn-primary px-5 py-2 text-sm disabled:opacity-50"
+                  className="rounded-xl bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
                 >
                   {quoteSending ? 'در حال ارسال...' : 'ارسال درخواست'}
                 </button>
