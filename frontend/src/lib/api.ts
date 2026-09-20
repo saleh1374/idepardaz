@@ -2,15 +2,11 @@ import type {
   BomResult,
   CreateProjectResponse,
   IntentResult,
-  ProjectSummary,
   RecipeDetail,
   RecipeSummary,
 } from './types'
 
-/**
- * کلاینت سبک API — از طریق proxy وی‌یت به بک‌اند متصل می‌شود.
- * هر خطا به شکل ApiError با پیام قابل‌نمایش پرتاب می‌شود.
- */
+/** API client — connects to backend via Vite proxy /api → localhost:5090 */
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
@@ -35,10 +31,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     let payload: { message?: string; errors?: string[] } | null = null
     try {
       payload = (await res.json()) as { message?: string; errors?: string[] }
-    } catch {
-      /* پاسخ JSON نیست */
-    }
-    const message = payload?.message ?? payload?.errors?.[0] ?? `خطای سرور (${res.status})`
+    } catch { /* non-JSON */ }
+    const message =
+      payload?.message ?? payload?.errors?.[0] ?? `خطای سرور (${res.status})`
     throw new ApiError(res.status, message, payload?.errors)
   }
 
@@ -46,47 +41,106 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
+/* ---------- Recipes ---------- */
+
+export interface RecipeListResponse {
+  page: number
+  pageSize: number
+  total?: number
+  items: RecipeSummary[]
+}
+
 export const api = {
   health: () => request<{ status: string; db: string }>('/health'),
 
+  /* Recipes */
   listRecipes: (params?: { search?: string; category?: string; status?: string }) => {
     const q = new URLSearchParams()
     if (params?.search) q.set('search', params.search)
     if (params?.category) q.set('category', params.category)
     if (params?.status) q.set('status', params.status)
     const qs = q.toString()
-    return request<{ page: number; pageSize: number; items: RecipeSummary[] }>(
-      `/recipes${qs ? `?${qs}` : ''}`,
-    )
+    return request<RecipeListResponse>(`/recipes${qs ? `?${qs}` : ''}`)
   },
 
-  getRecipe: (id: string) => request<RecipeDetail>(`/recipes/${encodeURIComponent(id)}`),
+  getRecipe: (id: string) =>
+    request<RecipeDetail>(`/recipes/${encodeURIComponent(id)}`),
 
+  /* BOM */
   generateBom: (body: {
     recipeId: string
     parameters?: Record<string, number | string | boolean>
-  }) =>
-    request<BomResult>('/bom/generate', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
+  }) => request<BomResult>('/bom/generate', { method: 'POST', body: JSON.stringify(body) }),
 
+  /* Projects */
   createProject: (body: {
     title?: string
     recipeId: string
     parameters?: Record<string, number | string | boolean>
-  }) =>
-    request<CreateProjectResponse>('/projects', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
+  }) => request<CreateProjectResponse>('/projects', { method: 'POST', body: JSON.stringify(body) }),
 
   listProjects: () =>
-    request<{ page: number; pageSize: number; items: ProjectSummary[] }>('/projects'),
+    request<{ page: number; pageSize: number; total?: number; items: unknown[] }>('/projects'),
 
+  /* AI */
   intent: (text: string) =>
-    request<IntentResult>('/ai/intent', {
-      method: 'POST',
-      body: JSON.stringify({ text }),
-    }),
+    request<IntentResult>('/ai/intent', { method: 'POST', body: JSON.stringify({ text }) }),
+
+  /* Parts catalog — route is /api/parts */
+  listParts: (params?: { search?: string; category?: string }) => {
+    const q = new URLSearchParams()
+    if (params?.search) q.set('search', params.search)
+    if (params?.category) q.set('category', params.category)
+    const qs = q.toString()
+    return request<{
+      page: number
+      pageSize: number
+      total?: number
+      items: Array<{
+        id: string
+        nameFa: string
+        nameEn: string
+        category: string
+        unit: string
+        description?: string
+        specCount: number
+        minPriceToman?: number
+        supplierCount: number
+      }>
+    }>(`/parts${qs ? `?${qs}` : ''}`)
+  },
+
+  getPart: (id: string) =>
+    request<{
+      id: string
+      nameFa: string
+      nameEn: string
+      category: string
+      unit: string
+      description?: string
+      specifications: Array<{ key: string; value: string; unit?: string }>
+      products: Array<{
+        id: number
+        supplier?: string
+        sku?: string
+        mpn?: string
+        title: string
+        price: number
+        stock: string
+        stockQty: number
+        url?: string
+        lastSyncAt: string
+      }>
+    }>(`/parts/${encodeURIComponent(id)}`),
+
+  /* Suppliers — route is /api/suppliers, returns { items: [...] } */
+  listSuppliers: () =>
+    request<{
+      items: Array<{
+        id: string
+        name: string
+        baseUrl?: string
+        productCount: number
+      }>
+    }>('/suppliers'),
 }

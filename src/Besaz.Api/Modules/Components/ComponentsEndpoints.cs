@@ -18,7 +18,9 @@ public static class ComponentsEndpoints
 
     private static async Task<IResult> ListParts(AppDbContext db, string? category, string? search, int page = 1, int pageSize = 100)
     {
-        IQueryable<LogicalPart> q = db.LogicalParts.AsNoTracking();
+        IQueryable<LogicalPart> q = db.LogicalParts
+            .Include(p => p.SupplierProducts)
+            .AsNoTracking();
         if (!string.IsNullOrWhiteSpace(category)) q = q.Where(p => p.Category == category);
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -26,8 +28,9 @@ public static class ComponentsEndpoints
             q = q.Where(p => p.NameFa.Contains(s) || p.NameEn.Contains(s) || p.Id.Contains(s));
         }
 
-        var rows = await q
-            .OrderBy(p => p.Id)
+        var all = await q.OrderBy(p => p.Id).ToListAsync();
+
+        var rows = all
             .Skip(Math.Max(0, page - 1) * pageSize)
             .Take(Math.Clamp(pageSize, 1, 200))
             .Select(p => new
@@ -37,14 +40,17 @@ public static class ComponentsEndpoints
                 nameEn = p.NameEn,
                 category = p.Category,
                 unit = p.Unit,
+                description = p.Description,
                 specCount = p.Specifications.Count,
                 minPriceToman = p.SupplierProducts
                     .Where(sp => sp.IsActive && sp.StockStatus == StockStatus.InStock)
                     .Select(sp => (decimal?)sp.Price)
+                    .DefaultIfEmpty(null)
                     .Min(),
+                supplierCount = p.SupplierProducts.Count(sp => sp.IsActive),
             })
-            .ToListAsync();
-        return Results.Ok(new { page, pageSize, items = rows });
+            .ToList();
+        return Results.Ok(new { page, pageSize, total = all.Count, items = rows });
     }
 
     private static async Task<IResult> GetPart(AppDbContext db, string id)

@@ -4,6 +4,7 @@ import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import RecipesPage from './pages/RecipesPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
+import PartsPage from './pages/PartsPage'
 import WizardPage from './pages/WizardPage'
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/recipes" element={<RecipesPage />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/parts" element={<PartsPage />} />
           <Route path="/wizard" element={<WizardPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

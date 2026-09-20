@@ -33,6 +33,11 @@ export default function Footer() {
               </Link>
             </li>
             <li>
+              <Link to="/parts" className="text-ink-400 transition-colors hover:text-white">
+                کاتالوگ قطعات
+              </Link>
+            </li>
+            <li>
               <Link to="/wizard" className="text-ink-400 transition-colors hover:text-white">
                 ویزارد هوشمند
               </Link>

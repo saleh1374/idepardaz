@@ -166,7 +166,8 @@ public static class BomEndpoints
     {
         IQueryable<Project> q = db.Projects.AsNoTracking();
         if (userId.HasValue) q = q.Where(p => p.UserId == userId.Value);
-        var rows = await q.OrderByDescending(p => p.CreatedAt)
+        var all = (await q.ToListAsync()).OrderByDescending(p => p.CreatedAt).ToList();
+        var rows = all
             .Skip((Math.Max(1, page) - 1) * pageSize).Take(Math.Clamp(pageSize, 1, 200))
             .Select(p => new
             {
@@ -174,8 +175,8 @@ public static class BomEndpoints
                 recipeVersion = p.RecipeVersionText, status = p.Status.ToString(),
                 bomId = p.BomId, createdAt = p.CreatedAt,
             })
-            .ToListAsync();
-        return Results.Ok(new { page, pageSize, items = rows });
+            .ToList();
+        return Results.Ok(new { page, pageSize, total = all.Count, items = rows });
     }
 
     private static async Task<IResult> GetProject(AppDbContext db, long id)

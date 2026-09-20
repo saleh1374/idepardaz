@@ -89,7 +89,7 @@ public static class RecipesEndpoints
         var dto = new RecipeDetailDto(
             recipe.Id, recipe.Slug, recipe.Title, recipe.Category, recipe.Difficulty.ToWire(),
             recipe.SafetyLevel.ToWire(), recipe.EstimatedMinutes, recipe.Status.ToWire(),
-            recipe.CurrentVersion, recipe.Summary, recipe.Summary,
+            recipe.CurrentVersion, recipe.Summary, payload?.Description ?? recipe.Summary,
             payload?.LicenseValue ?? "CC-BY-NC-4.0",
             recipe.Versions.OrderByDescending(v => v.CreatedAt).Select(v => new VersionDto(v.Id, v.Version, v.Status.ToWire(), v.CreatedAt)).ToList(),
             payload!);

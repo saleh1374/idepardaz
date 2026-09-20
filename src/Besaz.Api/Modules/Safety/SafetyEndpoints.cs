@@ -19,13 +19,15 @@ public static class SafetyEndpoints
         if (!string.IsNullOrWhiteSpace(entityType)) q = q.Where(l => l.EntityType == entityType);
         if (!string.IsNullOrWhiteSpace(entityId)) q = q.Where(l => l.EntityId == entityId);
 
-        var rows = await q.OrderByDescending(l => l.Timestamp)
+        var all = (await q.ToListAsync())
+            .OrderByDescending(l => l.Timestamp).ToList();
+        var rows = all
             .Skip((Math.Max(1, page) - 1) * pageSize).Take(Math.Clamp(pageSize, 1, 200))
             .Select(l => new
             {
                 l.Id, l.Timestamp, l.EntityType, l.EntityId, l.Action, l.ActorId, l.DataJson,
             })
-            .ToListAsync();
+            .ToList();
         return Results.Ok(new { page, pageSize, items = rows });
     }
 }

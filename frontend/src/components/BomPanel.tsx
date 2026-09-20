@@ -73,37 +73,50 @@ export default function BomPanel({
   return (
     <div className="space-y-4">
       {!bom && (
-        <button type="button" onClick={generate} disabled={loading} className="btn-primary w-full py-3">
-          {loading ? 'در حال محاسبه…' : 'محاسبهٔ BOM با قیمت زنده'}
+        <button type="button" onClick={generate} disabled={loading} className="btn-primary w-full py-3.5">
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              در حال محاسبه…
+            </span>
+          ) : (
+            '💰 محاسبهٔ BOM با قیمت زنده'
+          )}
         </button>
       )}
 
       {bom && (
         <div className="space-y-4">
           {bom.warnings.length > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-bold text-amber-800">هشدارها</p>
+            <div className="animate-fadeIn rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-bold text-amber-800">⚠️ هشدارها</p>
               <ul className="mt-2 space-y-1 text-sm text-amber-800">
                 {bom.warnings.map((w, i) => (
-                  <li key={i}>• {w}</li>
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                    {w}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
 
           {bom.errors.length > 0 && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
-              <p className="text-sm font-bold text-rose-800">BOM معتبر نیست</p>
+            <div className="animate-fadeIn rounded-xl border border-rose-200 bg-rose-50 p-4">
+              <p className="text-sm font-bold text-rose-800">❌ BOM معتبر نیست</p>
               <ul className="mt-2 space-y-1 text-sm text-rose-800">
                 {bom.errors.map((e, i) => (
-                  <li key={i}>• {e}</li>
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
+                    {e}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
 
           {bom.isValid && (
-            <>
+            <div className="animate-fadeIn">
               <div className="overflow-x-auto rounded-xl border border-ink-200">
                 <table className="w-full min-w-[640px] text-right text-sm">
                   <thead className="bg-ink-50 text-xs font-bold text-ink-500">
@@ -119,7 +132,7 @@ export default function BomPanel({
                   </thead>
                   <tbody className="divide-y divide-ink-100">
                     {bom.items.map((item: BomItem) => (
-                      <tr key={item.logicalPartId} className="bg-white">
+                      <tr key={item.logicalPartId} className="bg-white transition-colors hover:bg-brand-50/30">
                         <td className="max-w-[220px] px-4 py-3">
                           <p className="font-semibold text-ink-800">{item.logicalPartName}</p>
                           <p className="font-mono text-[11px] text-ink-400" dir="ltr">
@@ -147,14 +160,14 @@ export default function BomPanel({
                 </table>
               </div>
 
-              <div className="flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4 flex flex-col gap-3 rounded-xl border-2 border-brand-200 bg-gradient-to-br from-brand-50 to-teal-50 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold text-brand-700">جمع کل سبد (بدون ارسال)</p>
                   <p className="text-2xl font-extrabold text-brand-800">{formatPrice(bom.total)}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button type="button" onClick={generate} className="btn-outline text-xs">
-                    محاسبهٔ دوباره
+                    🔄 محاسبهٔ دوباره
                   </button>
                   <button
                     type="button"
@@ -162,17 +175,24 @@ export default function BomPanel({
                     disabled={saving}
                     className="btn-primary text-xs"
                   >
-                    {saving ? 'در حال ثبت…' : 'ثبت به‌عنوان پروژهٔ من'}
+                    {saving ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        در حال ثبت…
+                      </span>
+                    ) : (
+                      '📝 ثبت به‌عنوان پروژهٔ من'
+                    )}
                   </button>
                 </div>
               </div>
 
               {projectMsg && (
-                <div className="rounded-xl border border-brand-300 bg-white p-4 text-sm font-medium text-brand-800">
+                <div className="animate-fadeIn mt-3 rounded-xl border border-brand-300 bg-brand-50 p-4 text-sm font-medium text-brand-800">
                   ✅ {projectMsg}
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {error && !projectMsg && (

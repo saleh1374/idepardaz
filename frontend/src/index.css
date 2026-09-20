@@ -45,15 +45,16 @@ body {
   border: 1px solid var(--color-ink-200);
   background-color: #fff;
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  transition: all 0.2s ease;
 }
 
 .card-hover {
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-hover:hover {
   transform: translateY(-4px);
   border-color: var(--color-brand-300);
-  box-shadow: 0 12px 28px -8px rgb(15 23 42 / 0.14);
+  box-shadow: 0 12px 28px -8px rgb(15 23 42 / 0.14), 0 0 0 1px rgb(16 185 129 / 0.08);
 }
 
 /* ---------- دکمه‌ها ---------- */
@@ -67,7 +68,7 @@ body {
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-base:focus-visible {
   outline: none;
@@ -81,9 +82,15 @@ body {
 .btn-primary {
   background-image: linear-gradient(to left, var(--color-brand-600), #0d9488);
   color: #fff;
+  box-shadow: 0 2px 8px -2px rgb(16 185 129 / 0.4);
 }
 .btn-primary:hover:not(:disabled) {
   background-image: linear-gradient(to left, var(--color-brand-700), #0f766e);
+  box-shadow: 0 4px 12px -2px rgb(16 185 129 / 0.5);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-outline {
@@ -92,8 +99,9 @@ body {
   color: var(--color-ink-700);
 }
 .btn-outline:hover:not(:disabled) {
-  border-color: var(--color-ink-400);
-  background-color: var(--color-ink-50);
+  border-color: var(--color-brand-400);
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-700);
 }
 
 .btn-ghost {
@@ -113,6 +121,7 @@ body {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   color: var(--color-ink-900);
+  transition: all 0.2s ease;
 }
 .input::placeholder {
   color: var(--color-ink-400);
@@ -137,4 +146,109 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-ink-400);
+}
+
+/* ---------- انیمیشن‌ها ---------- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.4s ease-out both;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* stagger children */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 80ms; }
+.stagger > *:nth-child(3) { animation-delay: 160ms; }
+.stagger > *:nth-child(4) { animation-delay: 240ms; }
+.stagger > *:nth-child(5) { animation-delay: 320ms; }
+.stagger > *:nth-child(6) { animation-delay: 400ms; }
+
+/* ---------- گرادیانت متن ---------- */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-brand-600), #0d9488, var(--color-brand-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---------- خط گرادیانت ---------- */
+.border-gradient {
+  position: relative;
+}
+.border-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-brand-400), transparent);
+  border-radius: 1px;
+}
+
+/* ---------- شیشه‌ای ---------- */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ---------- هاور لینک ---------- */
+.link-hover {
+  position: relative;
+}
+.link-hover::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--color-brand-500);
+  transition: width 0.2s ease;
+}
+.link-hover:hover::after {
+  width: 100%;
 }
