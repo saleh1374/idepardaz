@@ -38,6 +38,11 @@ export default function Footer() {
               </Link>
             </li>
             <li>
+              <Link to="/projects" className="text-ink-400 transition-colors hover:text-white">
+                پروژه‌های من
+              </Link>
+            </li>
+            <li>
               <Link to="/wizard" className="text-ink-400 transition-colors hover:text-white">
                 ویزارد هوشمند
               </Link>

@@ -49,15 +49,26 @@ export default function ParameterForm({
           </label>
 
           {p.type === 'integer' && (
-            <input
-              type="number"
-              min={p.min ?? undefined}
-              max={p.max ?? undefined}
-              step={p.step ?? 1}
-              value={typeof value[p.key] === 'number' ? (value[p.key] as number) : 1}
-              onChange={(e) => set(p.key, clampInteger(Number(e.target.value), p.min, p.max))}
-              className="input"
-            />
+            <div>
+              <input
+                type="number"
+                min={p.min ?? undefined}
+                max={p.max ?? undefined}
+                step={p.step ?? 1}
+                value={typeof value[p.key] === 'number' ? (value[p.key] as number) : 1}
+                onChange={(e) => set(p.key, clampInteger(Number(e.target.value), p.min, p.max))}
+                className="input"
+              />
+              {(p.min != null || p.max != null) && (
+                <p className="mt-1 text-[11px] text-ink-400">
+                  {p.min != null && p.max != null
+                    ? `بین ${p.min} تا ${p.max}`
+                    : p.min != null
+                      ? `حداقل ${p.min}`
+                      : `حداکثر ${p.max}`}
+                </p>
+              )}
+            </div>
           )}
 
           {p.type === 'enum' && (
@@ -76,7 +87,7 @@ export default function ParameterForm({
 
           {p.type === 'boolean' && (
             <label className="flex cursor-pointer items-center justify-between rounded-xl border border-ink-200 bg-white px-4 py-2.5">
-              <span className="text-sm text-ink-600">شامل باشد</span>
+              <span className="text-sm text-ink-600">{p.label}</span>
               <input
                 type="checkbox"
                 checked={Boolean(value[p.key])}

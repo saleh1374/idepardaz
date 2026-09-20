@@ -20,12 +20,24 @@ const catLabel: Record<string, string> = {
   power: 'توان',
 }
 
+const catIcon: Record<string, string> = {
+  lighting: '💡',
+  power: '⚡',
+}
+
+const roleLabel: Record<string, string> = {
+  Required: 'الزامی',
+  Optional: 'اختیاری',
+  Alternative: 'جایگزین',
+}
+
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [detail, setDetail] = useState<RecipeDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [gatePassed, setGatePassed] = useState(false)
   const [params, setParams] = useState<ParamValues>({})
+  const [activeTab, setActiveTab] = useState<'build' | 'details'>('build')
 
   useEffect(() => {
     if (!id) return
@@ -49,40 +61,49 @@ export default function RecipeDetailPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <p className="text-lg font-bold text-rose-600">{error}</p>
-        <Link to="/recipes" className="mt-4 inline-block text-sm font-bold text-brand-600">← بازگشت</Link>
+        <span className="text-4xl">😔</span>
+        <p className="mt-3 text-lg font-bold text-rose-600">{error}</p>
+        <Link to="/recipes" className="mt-4 inline-block text-sm font-bold text-brand-600">← بازگشت به دستورها</Link>
       </div>
     )
   }
 
   if (!detail) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20">
-        <div className="card h-64 animate-pulse bg-ink-100" />
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <div className="card h-32 animate-pulse bg-ink-100" />
+        <div className="mt-4 grid gap-6 lg:grid-cols-5">
+          <div className="card h-64 animate-pulse bg-ink-100 lg:col-span-2" />
+          <div className="card h-64 animate-pulse bg-ink-100 lg:col-span-3" />
+        </div>
       </div>
     )
   }
 
   const payload = detail.payload
   const needsGate = detail.safetyLevel === 'HIGH' || detail.safetyLevel === 'CRITICAL'
+  const components = payload.components ?? []
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-2 text-xs text-ink-400">
-        <Link to="/" className="hover:text-brand-600">خانه</Link>
+        <Link to="/" className="hover:text-brand-600 transition-colors">خانه</Link>
         <span>/</span>
-        <Link to="/recipes" className="hover:text-brand-600">دستورها</Link>
+        <Link to="/recipes" className="hover:text-brand-600 transition-colors">دستورها</Link>
         <span>/</span>
         <span className="text-ink-600">{detail.title}</span>
       </nav>
 
       {/* Title + Badges */}
-      <div className="mb-6">
+      <div className="mb-6 animate-fadeInUp">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <h1 className="text-2xl font-black leading-10 text-ink-900 sm:text-3xl">{detail.title}</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{catIcon[detail.category] ?? '📋'}</span>
+            <h1 className="text-2xl font-black leading-10 text-ink-900 sm:text-3xl">{detail.title}</h1>
+          </div>
           <Badge tone={safetyTone[detail.safetyLevel] ?? 'ink'}>
-            ایمنی: {safetyLabel[detail.safetyLevel] ?? detail.safetyLevel}
+            {safetyLabel[detail.safetyLevel] ?? detail.safetyLevel}
           </Badge>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -107,95 +128,183 @@ export default function RecipeDetailPage() {
       {/* Only show build section if gate passed (or not needed) */}
       {(!needsGate || gatePassed) && (
         <>
-          {/* Build section */}
-          <section className="mt-8">
-            <h2 className="text-xl font-black text-ink-900">تنظیمات ساخت</h2>
-            <p className="mt-1 text-sm text-ink-500">
-              پارامترها را تنظیم کن و BOM زنده بگیر — قیمت و موجودی واقعی فروشگاه‌های ایرانی.
-            </p>
-            <div className="mt-6 grid gap-6 lg:grid-cols-5">
-              <div className="card p-6 lg:col-span-2">
-                <h3 className="mb-4 text-sm font-extrabold text-ink-800">پارامترهای دستور</h3>
-                <ParameterForm parameters={payload.parameters} value={params} onChange={setParams} />
-              </div>
-              <div className="card p-6 lg:col-span-3">
-                <h3 className="mb-4 text-sm font-extrabold text-ink-800">لیست قطعات و قیمت</h3>
-                <BomPanel recipeId={detail.id} parameters={params} title={detail.title} />
-              </div>
-            </div>
-          </section>
+          {/* Tabs */}
+          <div className="mt-8 flex gap-1 border-b border-ink-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab('build')}
+              className={`px-4 py-2.5 text-sm font-bold transition-colors ${
+                activeTab === 'build'
+                  ? 'border-b-2 border-brand-600 text-brand-700'
+                  : 'text-ink-500 hover:text-ink-700'
+              }`}
+            >
+              🔧 ساخت و BOM
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('details')}
+              className={`px-4 py-2.5 text-sm font-bold transition-colors ${
+                activeTab === 'details'
+                  ? 'border-b-2 border-brand-600 text-brand-700'
+                  : 'text-ink-500 hover:text-ink-700'
+              }`}
+            >
+              📋 جزئیات دستور
+            </button>
+          </div>
 
-          {/* Tools */}
-          {payload.tools && payload.tools.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-lg font-black text-ink-900">ابزارهای مورد نیاز</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {payload.tools.map((t) => (
-                  <span key={t} className="rounded-lg bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700">
-                    🛠 {t}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Safety Warnings */}
-          {payload.safetyWarnings && payload.safetyWarnings.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-lg font-black text-ink-900">هشدارهای ایمنی</h2>
-              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <ul className="space-y-2">
-                  {payload.safetyWarnings.map((w, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm leading-6 text-ink-700">
-                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                      {w}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          )}
-
-          {/* Steps */}
-          {payload.steps && payload.steps.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-xl font-black text-ink-900">گام‌به‌گام بساز</h2>
-              <ol className="mt-4 space-y-3">
-                {payload.steps.map((step) => (
-                  <li key={step.n} className="card flex gap-4 p-5">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-100 text-sm font-black text-brand-700">
-                      {step.n}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-bold text-ink-900">{step.title}</h3>
-                      {step.description && (
-                        <p className="mt-1 text-sm leading-7 text-ink-600">{step.description}</p>
-                      )}
-                      {step.safety && (
-                        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-                          <p className="text-xs leading-6 text-amber-800">⚠️ {step.safety}</p>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
-
-          {/* Tests */}
-          {payload.tests && payload.tests.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-lg font-black text-ink-900">تست پذیرش</h2>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {payload.tests.map((t) => (
-                  <div key={t.name} className="card p-4">
-                    <h3 className="text-sm font-bold text-ink-800">{t.name}</h3>
-                    <p className="mt-1 text-xs leading-5 text-ink-500">{t.expected}</p>
+          {/* Tab: Build + BOM */}
+          {activeTab === 'build' && (
+            <div className="animate-fadeIn">
+              {/* Build section */}
+              <section className="mt-6">
+                <h2 className="text-xl font-black text-ink-900">تنظیمات ساخت</h2>
+                <p className="mt-1 text-sm text-ink-500">
+                  پارامترها را تنظیم کن و BOM زنده بگیر — قیمت و موجودی واقعی فروشگاه‌های ایرانی.
+                </p>
+                <div className="mt-6 grid gap-6 lg:grid-cols-5">
+                  <div className="card p-6 lg:col-span-2">
+                    <h3 className="mb-4 text-sm font-extrabold text-ink-800">پارامترهای دستور</h3>
+                    <ParameterForm parameters={payload.parameters} value={params} onChange={setParams} />
                   </div>
-                ))}
-              </div>
-            </section>
+                  <div className="card p-6 lg:col-span-3">
+                    <h3 className="mb-4 text-sm font-extrabold text-ink-800">لیست قطعات و قیمت</h3>
+                    <BomPanel recipeId={detail.id} parameters={params} title={detail.title} />
+                  </div>
+                </div>
+              </section>
+
+              {/* Tools */}
+              {payload.tools && payload.tools.length > 0 && (
+                <section className="mt-8">
+                  <h2 className="text-lg font-black text-ink-900">ابزارهای مورد نیاز</h2>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {payload.tools.map((t) => (
+                      <span key={t} className="rounded-lg bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700">
+                        🛠 {t}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Safety Warnings */}
+              {payload.safetyWarnings && payload.safetyWarnings.length > 0 && (
+                <section className="mt-8">
+                  <h2 className="text-lg font-black text-ink-900">هشدارهای ایمنی</h2>
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <ul className="space-y-2">
+                      {payload.safetyWarnings.map((w, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm leading-6 text-ink-700">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                          {w}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {/* Tab: Details */}
+          {activeTab === 'details' && (
+            <div className="animate-fadeIn mt-6 space-y-8">
+              {/* Components */}
+              {components.length > 0 && (
+                <section>
+                  <h2 className="text-lg font-black text-ink-900">قطعات مورد نیاز</h2>
+                  <p className="mt-1 text-sm text-ink-500">لیست منطقی قطعات — قیمت واقعی در مرحلهٔ BOM محاسبه می‌شود.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {components.map((c) => (
+                      <div key={c.logicalPartId} className="card flex items-start gap-3 p-4">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-sm font-bold text-brand-700">
+                          {c.role === 'Required' ? '●' : '○'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-ink-800">{c.logicalPartId}</p>
+                            <Badge tone={c.role === 'Required' ? 'brand' : 'ink'}>
+                              {roleLabel[c.role] ?? c.role}
+                            </Badge>
+                          </div>
+                          {c.qtyFormula && (
+                            <p className="mt-1 text-xs text-ink-500" dir="ltr">
+                              qty: {c.qtyFormula}
+                            </p>
+                          )}
+                          {c.alternatives && c.alternatives.length > 0 && (
+                            <p className="mt-1 text-xs text-ink-400">
+                              جایگزین: {c.alternatives.join('، ')}
+                            </p>
+                          )}
+                          {c.notes && (
+                            <p className="mt-1 text-xs leading-5 text-ink-500">{c.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Skills */}
+              {payload.skills && payload.skills.length > 0 && (
+                <section>
+                  <h2 className="text-lg font-black text-ink-900">مهارت‌های مورد نیاز</h2>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {payload.skills.map((s) => (
+                      <span key={s} className="rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">
+                        ✅ {s}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Steps */}
+              {payload.steps && payload.steps.length > 0 && (
+                <section>
+                  <h2 className="text-xl font-black text-ink-900">گام‌به‌گام بساز</h2>
+                  <ol className="mt-4 space-y-3">
+                    {payload.steps.map((step) => (
+                      <li key={step.n} className="card flex gap-4 p-5">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-100 text-sm font-black text-brand-700">
+                          {step.n}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-bold text-ink-900">{step.title}</h3>
+                          {step.description && (
+                            <p className="mt-1 text-sm leading-7 text-ink-600">{step.description}</p>
+                          )}
+                          {step.safety && (
+                            <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                              <p className="text-xs leading-6 text-amber-800">⚠️ {step.safety}</p>
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+
+              {/* Tests */}
+              {payload.tests && payload.tests.length > 0 && (
+                <section>
+                  <h2 className="text-lg font-black text-ink-900">تست پذیرش</h2>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {payload.tests.map((t) => (
+                      <div key={t.name} className="card p-4">
+                        <h3 className="text-sm font-bold text-ink-800">{t.name}</h3>
+                        <p className="mt-1 text-xs leading-5 text-ink-500">{t.expected}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           )}
         </>
       )}

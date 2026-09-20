@@ -5,6 +5,7 @@ const navItems = [
   { to: '/', label: 'خانه' },
   { to: '/recipes', label: 'دستورها' },
   { to: '/parts', label: 'قطعات' },
+  { to: '/projects', label: 'پروژه‌ها' },
   { to: '/wizard', label: 'ویزارد' },
 ]
 
