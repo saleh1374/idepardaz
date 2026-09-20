@@ -9,6 +9,15 @@ import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import ProfilePage from './pages/ProfilePage'
 import WizardPage from './pages/WizardPage'
+import MakersPage from './pages/MakersPage'
+import MakerDetailPage from './pages/MakerDetailPage'
+import OrdersPage from './pages/OrdersPage'
+import OrderDetailPage from './pages/OrderDetailPage'
+import AdminPage from './pages/AdminPage'
+import AdminUsersPage from './pages/AdminUsersPage'
+import AdminRecipesPage from './pages/AdminRecipesPage'
+import AdminOrdersPage from './pages/AdminOrdersPage'
+import AdminAuditPage from './pages/AdminAuditPage'
 
 export default function App() {
   return (
@@ -24,6 +33,15 @@ export default function App() {
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/wizard" element={<WizardPage />} />
+          <Route path="/makers" element={<MakersPage />} />
+          <Route path="/makers/:id" element={<MakerDetailPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<OrderDetailPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/recipes" element={<AdminRecipesPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/audit" element={<AdminAuditPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

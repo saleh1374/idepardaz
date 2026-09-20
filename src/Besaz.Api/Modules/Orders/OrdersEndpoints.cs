@@ -16,12 +16,47 @@ public static class OrdersEndpoints
     public static IEndpointRouteBuilder MapOrdersEndpoints(this IEndpointRouteBuilder app, string prefix = "/api/orders")
     {
         var g = app.MapGroup(prefix);
+        g.MapGet("/", ListOrders);
         g.MapPost("/", CreateFromProject);
         g.MapGet("/{id:long}", Get);
+        g.MapPatch("/{id:long}/status", UpdateStatus);
         return app;
     }
 
     public sealed record CreateOrderRequest(long ProjectId, string? RecipientName, string? ShippingAddress);
+    public sealed record UpdateOrderStatusRequest(string Status);
+
+    // ---------- فهرست سفارشات ----------
+
+    private static async Task<IResult> ListOrders(AppDbContext db, string? status, int page = 1, int pageSize = 50)
+    {
+        var query = db.Orders.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query = query.Where(o => o.Status == status);
+
+        // SQLite: DateTimeOffset.OrderBy unsupported — ToListAsync first
+        var all = await query.ToListAsync();
+
+        var rows = all
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((Math.Max(1, page) - 1) * pageSize).Take(Math.Clamp(pageSize, 1, 200))
+            .Select(o => new
+            {
+                id = o.Id,
+                projectId = o.ProjectId,
+                status = o.Status,
+                total = o.Total,
+                recipientName = o.RecipientName,
+                itemCount = o.Items.Count,
+                createdAt = o.CreatedAt,
+            })
+            .ToList();
+
+        return Results.Ok(new { page, pageSize, total = all.Count, items = rows });
+    }
+
+    // ---------- ساخت سفارش از پروژه ----------
 
     private static async Task<IResult> CreateFromProject(AppDbContext db, CreateOrderRequest req, HttpRequest http)
     {
@@ -110,6 +145,8 @@ public static class OrdersEndpoints
         });
     }
 
+    // ---------- جزئیات سفارش ----------
+
     private static async Task<IResult> Get(AppDbContext db, long id)
     {
         var order = await db.Orders.Include(o => o.Items).AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
@@ -128,5 +165,32 @@ public static class OrdersEndpoints
                 i.LogicalPartId, i.LogicalPartName, i.Sku, i.SupplierName, i.Quantity, i.UnitPrice, i.LineTotal, i.Url,
             }),
         });
+    }
+
+    // ---------- تغییر وضعیت سفارش ----------
+
+    private static async Task<IResult> UpdateStatus(AppDbContext db, long id, UpdateOrderStatusRequest req)
+    {
+        var order = await db.Orders.FindAsync(id);
+        if (order is null) return Results.NotFound(new { message = "سفارش یافت نشد." });
+
+        var validStatuses = new[] { "Pending", "Paid", "Shipped", "Delivered", "Cancelled" };
+        if (!validStatuses.Contains(req.Status))
+            return Results.BadRequest(new { message = $"وضعیت نامعتبر: {req.Status}" });
+
+        order.Status = req.Status;
+
+        db.AuditLogs.Add(new AuditLog
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            EntityType = "Order",
+            EntityId = id.ToString(),
+            Action = $"StatusChanged_{req.Status}",
+            ActorId = "admin",
+            DataJson = $"{{\"oldStatus\":\"{order.Status}\",\"newStatus\":\"{req.Status}\"}}",
+        });
+
+        await db.SaveChangesAsync();
+        return Results.Ok(new { id, status = req.Status });
     }
 }

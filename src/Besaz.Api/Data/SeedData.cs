@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Besaz.Api.Data;
 using Besaz.Api.Modules.Bom;
 using Besaz.Api.Modules.Components;
+using Besaz.Api.Modules.Makers;
 using Besaz.Api.Modules.Recipes;
 using Besaz.Api.Modules.Safety;
 using Besaz.Api.Modules.Suppliers;
@@ -167,6 +169,47 @@ public static class SeedData
             new BomRuleDefinition { Code = "BOM-002", NameFa = "قطعهٔ انتخاب‌شده ناموجود", Description = "اگر محصول انتخابی OutOfStock/Unknown باشد هشدار بده.", Severity = RuleSeverity.Warning },
             new BomRuleDefinition { Code = "BOM-003", NameFa = "تعداد قطعه باید مثبت باشد", Description = "تعداد قلم Required باید بزرگ‌تر از صفر باشد.", Severity = RuleSeverity.Error },
             new BomRuleDefinition { Code = "BOM-004", NameFa = "جایگزین در دسترس", Description = "آگاهی از وجود LogicalPart جایگزین.", Severity = RuleSeverity.Info });
+
+        await db.SaveChangesAsync();
+
+        // ---------- صنعتگران ----------
+        var makerUser1 = new User { Id = Guid.NewGuid(), Name = "علی رضایی", Email = "ali@example.com", Phone = "09121234567", Role = UserRole.Member, CreatedAt = nowish };
+        var makerUser2 = new User { Id = Guid.NewGuid(), Name = "سارا محمدی", Email = "sara@example.com", Phone = "09359876543", Role = UserRole.Member, CreatedAt = nowish };
+        var makerUser3 = new User { Id = Guid.NewGuid(), Name = "محمد حسینی", Email = "mohammad@example.com", Phone = "09191112233", Role = UserRole.Member, CreatedAt = nowish };
+        db.Users.AddRange(makerUser1, makerUser2, makerUser3);
+
+        var maker1 = new Maker
+        {
+            Id = Guid.NewGuid(), UserId = makerUser1.Id,
+            DisplayName = "عصرالکترونیک", Bio = "طراحی و ساخت بردهای الکترونیکی، چاپ PCB، مونتاژ SMD",
+            Specialties = "[\"PCB\",\"SMD\",\"Soldering\"]", City = "تهران",
+            IsVerified = true, RatingSum = 45, RatingCount = 12, IsActive = true, CreatedAt = nowish,
+        };
+        var maker2 = new Maker
+        {
+            Id = Guid.NewGuid(), UserId = makerUser2.Id,
+            DisplayName = "فاب lab مشهد", Bio = "سرویس چاپ سه‌بعدی، طراحی مکانیکی، ساخت بدنه و محفظه",
+            Specialties = "[\"3D-Print\",\"CNC\",\"Enclosure\"]", City = "مشهد",
+            IsVerified = true, RatingSum = 38, RatingCount = 10, IsActive = true, CreatedAt = nowish,
+        };
+        var maker3 = new Maker
+        {
+            Id = Guid.NewGuid(), UserId = makerUser3.Id,
+            DisplayName = "تهرانmaker", Bio = "مونتاژ و تست پروژه‌های الکترونیکی، آموزش و مشاوره",
+            Specialties = "[\"Assembly\",\"Testing\",\"Training\"]", City = "تهران",
+            IsVerified = false, RatingSum = 15, RatingCount = 5, IsActive = true, CreatedAt = nowish,
+        };
+        db.Makers.AddRange(maker1, maker2, maker3);
+
+        // ---------- خدمات صنعتگران ----------
+        db.MakerServices.AddRange(
+            new MakerService { MakerId = maker1.Id, Title = "چاپ PCB تک‌لایه", Description = "چاپ بردهای مسی تک‌لایه تا ۱۰۰×۱۰۰mm", Price = 150000, Unit = "per_item", LeadTimeDays = 3, IsActive = true, CreatedAt = nowish },
+            new MakerService { MakerId = maker1.Id, Title = "مونتاژ SMD", Description = "مونتاژ قطعات SMD با دقت بالا", Price = 50000, Unit = "per_item", LeadTimeDays = 2, IsActive = true, CreatedAt = nowish },
+            new MakerService { MakerId = maker2.Id, Title = "چاپ سه‌بعدی PLA/PETG", Description = "چاپ سه‌بعدی با کیفیت بالا، رنگ‌های متنوع", Price = 80000, Unit = "per_item", LeadTimeDays = 2, IsActive = true, CreatedAt = nowish },
+            new MakerService { MakerId = maker2.Id, Title = "طراحی محفظه", Description = "طراحی محفظه سفارشی با Fusion360/SolidWorks", Price = 500000, Unit = "fixed", LeadTimeDays = 5, IsActive = true, CreatedAt = nowish },
+            new MakerService { MakerId = maker3.Id, Title = "مونتاژ و تست", Description = "مونتاژ کامل پروژه + تست عملکرد", Price = 200000, Unit = "per_item", LeadTimeDays = 4, IsActive = true, CreatedAt = nowish },
+            new MakerService { MakerId = maker3.Id, Title = "مشاوره الکترونیک", Description = "مشاوره طراحی مدار و انتخاب قطعات", Price = 300000, Unit = "per_hour", LeadTimeDays = 1, IsActive = true, CreatedAt = nowish }
+        );
 
         await db.SaveChangesAsync();
 

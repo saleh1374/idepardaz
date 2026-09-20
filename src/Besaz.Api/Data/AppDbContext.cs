@@ -1,5 +1,6 @@
 using Besaz.Api.Modules.Bom;
 using Besaz.Api.Modules.Components;
+using Besaz.Api.Modules.Makers;
 using Besaz.Api.Modules.Orders;
 using Besaz.Api.Modules.Projects;
 using Besaz.Api.Modules.Recipes;
@@ -40,6 +41,9 @@ public class AppDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<SafetyApproval> SafetyApprovals => Set<SafetyApproval>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Maker> Makers => Set<Maker>();
+    public DbSet<MakerService> MakerServices => Set<MakerService>();
+    public DbSet<QuoteRequest> QuoteRequests => Set<QuoteRequest>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -207,6 +211,36 @@ public class AppDbContext : DbContext
             e.HasIndex(l => new { l.EntityType, l.EntityId });
             if (IsPostgres) e.Property(l => l.DataJson).HasColumnType("jsonb");
             // ثبت: فقط Insert — Update/Delete از طریق سرویس ممنوع (سطح دیتابیس: تریگر در فاز بعد)
+        });
+
+        // ---- Makers ----
+        b.Entity<Maker>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.HasIndex(m => m.UserId);
+            e.HasIndex(m => m.City);
+            e.Property(m => m.DisplayName).IsRequired().HasMaxLength(200);
+            e.HasOne(m => m.User).WithMany().HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(m => m.Services).WithOne(s => s.Maker).HasForeignKey(s => s.MakerId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MakerService>(e =>
+        {
+            e.HasKey(s => s.Id);
+            e.HasIndex(s => s.MakerId);
+            e.Property(s => s.Title).IsRequired().HasMaxLength(200);
+            e.Property(s => s.Price).HasPrecision(18, 2);
+            e.Property(s => s.Unit).IsRequired().HasMaxLength(40);
+        });
+
+        b.Entity<QuoteRequest>(e =>
+        {
+            e.HasKey(q => q.Id);
+            e.HasIndex(q => q.MakerId);
+            e.HasIndex(q => q.Status);
+            e.Property(q => q.Description).IsRequired().HasMaxLength(2000);
+            e.Property(q => q.QuotedPrice).HasPrecision(18, 2);
+            e.HasOne(q => q.Maker).WithMany().HasForeignKey(q => q.MakerId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

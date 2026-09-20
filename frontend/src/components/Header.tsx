@@ -6,7 +6,17 @@ const navItems = [
   { to: '/recipes', label: 'دستورها' },
   { to: '/parts', label: 'قطعات' },
   { to: '/projects', label: 'پروژه‌ها' },
+  { to: '/makers', label: 'صنعتگران' },
+  { to: '/orders', label: 'سفارشات' },
   { to: '/wizard', label: 'ویزارد' },
+]
+
+const adminItems = [
+  { to: '/admin', label: 'داشبورد' },
+  { to: '/admin/users', label: 'کاربران' },
+  { to: '/admin/recipes', label: 'دستورها' },
+  { to: '/admin/orders', label: 'سفارشات' },
+  { to: '/admin/audit', label: 'گزارش' },
 ]
 
 function Logo() {
@@ -25,6 +35,7 @@ function Logo() {
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-200/70 bg-white/80 backdrop-blur-md">
@@ -49,6 +60,38 @@ export default function Header() {
               {item.label}
             </NavLink>
           ))}
+
+          {/* Admin dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setAdminOpen(!adminOpen)}
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-100 hover:text-ink-900 transition-colors"
+            >
+              ⚙️ مدیریت
+            </button>
+            {adminOpen && (
+              <div className="absolute left-0 top-full mt-1 w-44 rounded-xl border border-ink-200 bg-white shadow-lg animate-fadeIn z-50">
+                {adminItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setAdminOpen(false)}
+                    className={({ isActive }) =>
+                      `block px-4 py-2.5 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-brand-50 text-brand-700'
+                          : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+
           <NavLink
             to="/profile"
             className={({ isActive }) =>
@@ -96,6 +139,24 @@ export default function Header() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `block rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-brand-50 text-brand-700'
+                    : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          <div className="my-2 border-t border-ink-100" />
+          <p className="px-3 py-1 text-xs font-bold text-ink-400">مدیریت</p>
+          {adminItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 `block rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${

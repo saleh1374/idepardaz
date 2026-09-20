@@ -1,11 +1,14 @@
 using Besaz.Api.Data;
+using Besaz.Api.Modules.Admin;
 using Besaz.Api.Modules.Ai;
 using Besaz.Api.Modules.Bom;
 using Besaz.Api.Modules.Components;
+using Besaz.Api.Modules.Makers;
 using Besaz.Api.Modules.Orders;
 using Besaz.Api.Modules.Recipes;
 using Besaz.Api.Modules.Safety;
 using Besaz.Api.Modules.Suppliers;
+using Besaz.Api.Modules.Users;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -81,6 +84,9 @@ app.MapBomEndpoints();
 app.MapOrdersEndpoints();
 app.MapAiEndpoints();
 app.MapSafetyEndpoints();
+app.MapAdminEndpoints();
+app.MapMakerEndpoints();
+app.MapUsersEndpoints();
 
 // ============ آماده‌سازی دیتابیس و Seed (فقط dev) ============
 using (var scope = app.Services.CreateScope())

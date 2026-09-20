@@ -83,6 +83,40 @@ export const api = {
   listProjects: () =>
     request<{ page: number; pageSize: number; total?: number; items: unknown[] }>('/projects'),
 
+  getProject: (id: number) =>
+    request<{
+      id: number
+      title: string
+      description: string | null
+      userDisplayName: string
+      recipeId: string
+      recipeVersion: string
+      status: string
+      isPublic: boolean
+      bomId: number | null
+      parameters: Record<string, unknown>
+      createdAt: string
+      updatedAt: string
+    }>(`/projects/${id}`),
+
+  getBomForProject: (projectId: number) =>
+    request<{
+      isValid: boolean
+      bomId: number | null
+      total: number | null
+      recipeTitle: string
+      recipeVersion: string
+      items: BomItem[]
+      errors: string[]
+      warnings: string[]
+    }>(`/projects/${projectId}/bom`),
+
+  changeProjectStatus: (id: number, status: string) =>
+    request<{ id: number; status: string }>(`/projects/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
   /* AI */
   intent: (text: string) =>
     request<IntentResult>('/ai/intent', { method: 'POST', body: JSON.stringify({ text }) }),
@@ -134,7 +168,7 @@ export const api = {
       }>
     }>(`/parts/${encodeURIComponent(id)}`),
 
-  /* Suppliers — route is /api/suppliers, returns { items: [...] } */
+  /* Suppliers — route is /api/suppliers */
   listSuppliers: () =>
     request<{
       items: Array<{
@@ -144,41 +178,6 @@ export const api = {
         productCount: number
       }>
     }>('/suppliers'),
-
-  /* Projects — individual */
-  getProject: (id: number) =>
-    request<{
-      id: number
-      title: string
-      description: string | null
-      userDisplayName: string
-      recipeId: string
-      recipeVersion: string
-      status: string
-      isPublic: boolean
-      bomId: number | null
-      parameters: Record<string, unknown>
-      createdAt: string
-      updatedAt: string
-    }>(`/projects/${id}`),
-
-  getBomForProject: (projectId: number) =>
-    request<{
-      isValid: boolean
-      bomId: number | null
-      total: number | null
-      recipeTitle: string
-      recipeVersion: string
-      items: BomItem[]
-      errors: string[]
-      warnings: string[]
-    }>(`/projects/${projectId}/bom`),
-
-  changeProjectStatus: (id: number, status: string) =>
-    request<{ id: number; status: string }>(`/projects/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    }),
 
   /* Orders */
   createOrder: (body: { projectId: number; recipientName?: string; shippingAddress?: string }) =>
@@ -198,4 +197,203 @@ export const api = {
       createdAt: string
       items: BomItem[]
     }>(`/orders/${id}`),
+
+  listOrders: (params?: { status?: string; page?: number }) => {
+    const q = new URLSearchParams()
+    if (params?.status) q.set('status', params.status)
+    if (params?.page) q.set('page', params.page!.toString())
+    const qs = q.toString()
+    return request<{
+      page: number
+      pageSize: number
+      total: number
+      items: Array<{
+        id: number
+        projectId: number
+        status: string
+        total: number
+        recipientName: string | null
+        itemCount: number
+        createdAt: string
+      }>
+    }>(`/orders${qs ? `?${qs}` : ''}`)
+  },
+
+  /* Makers */
+  listMakers: (params?: { city?: string; specialty?: string; page?: number }) => {
+    const q = new URLSearchParams()
+    if (params?.city) q.set('city', params.city)
+    if (params?.specialty) q.set('specialty', params.specialty)
+    if (params?.page) q.set('page', params.page!.toString())
+    const qs = q.toString()
+    return request<{
+      page: number
+      pageSize: number
+      total: number
+      items: Array<{
+        id: string
+        displayName: string
+        bio: string | null
+        specialties: string | null
+        city: string | null
+        avatarUrl: string | null
+        isVerified: boolean
+        rating: number
+        ratingCount: number
+        serviceCount: number
+        createdAt: string
+      }>
+    }>(`/makers${qs ? `?${qs}` : ''}`)
+  },
+
+  getMaker: (id: string) =>
+    request<{
+      id: string
+      displayName: string
+      bio: string | null
+      specialties: string | null
+      city: string | null
+      avatarUrl: string | null
+      isVerified: boolean
+      rating: number
+      ratingCount: number
+      userName: string
+      createdAt: string
+      services: Array<{
+        id: number
+        title: string
+        description: string | null
+        price: number
+        unit: string
+        leadTimeDays: number
+      }>
+    }>(`/makers/${id}`),
+
+  requestQuote: (body: { makerId: string; projectId?: number; description: string }) =>
+    request<{ id: number; makerId: string; status: string; createdAt: string }>(
+      '/makers/quote',
+      { method: 'POST', body: JSON.stringify(body) }
+    ),
+
+  /* Admin */
+  adminDashboard: () =>
+    request<{
+      stats: {
+        recipes: number
+        approvedRecipes: number
+        pendingRecipes: number
+        users: number
+        projects: number
+        orders: number
+        parts: number
+        suppliers: number
+      }
+      recentProjects: Array<{
+        id: number
+        title: string
+        recipeId: string
+        status: string
+        createdAt: string
+      }>
+      recentOrders: Array<{
+        id: number
+        projectId: number
+        status: string
+        total: number
+        createdAt: string
+      }>
+    }>('/admin/dashboard'),
+
+  adminListUsers: (page = 1) =>
+    request<{
+      page: number
+      pageSize: number
+      total: number
+      items: Array<{
+        id: string
+        name: string
+        email: string | null
+        phone: string | null
+        role: string
+        createdAt: string
+      }>
+    }>(`/admin/users?page=${page}`),
+
+  adminChangeUserRole: (id: string, role: string) =>
+    request<{ id: string; role: string }>(`/admin/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+
+  adminPendingRecipes: () =>
+    request<{
+      items: Array<{
+        id: string
+        title: string
+        category: string
+        difficulty: string
+        safetyLevel: string
+        status: string
+        createdAt: string
+      }>
+      total: number
+    }>('/admin/recipes/pending'),
+
+  adminApproveRecipe: (id: string) =>
+    request<{ id: string; status: string }>(`/admin/recipes/${id}/approve`, { method: 'POST' }),
+
+  adminRejectRecipe: (id: string) =>
+    request<{ id: string; status: string }>(`/admin/recipes/${id}/reject`, { method: 'POST' }),
+
+  adminListOrders: (page = 1) =>
+    request<{
+      page: number
+      pageSize: number
+      total: number
+      items: Array<{
+        id: number
+        projectId: number
+        status: string
+        total: number
+        recipientName: string | null
+        createdAt: string
+      }>
+    }>(`/admin/orders?page=${page}`),
+
+  adminAuditLog: (page = 1) =>
+    request<{
+      page: number
+      pageSize: number
+      total: number
+      items: Array<{
+        id: number
+        entityType: string
+        entityId: string
+        action: string
+        actorId: string
+        dataJson: string | null
+        timestamp: string
+      }>
+    }>(`/admin/audit?page=${page}`),
+
+  /* Users */
+  getUserProfile: () =>
+    request<{
+      id: string
+      name: string
+      email: string | null
+      phone: string | null
+      role: string
+      createdAt: string
+      stats: { projects: number; orders: number }
+    }>('/users/me'),
+
+  updateUserProfile: (body: { name?: string; email?: string; phone?: string }) =>
+    request<{
+      id: string
+      name: string
+      email: string | null
+      phone: string | null
+      role: string
+    }>('/users/me', { method: 'PATCH', body: JSON.stringify(body) }),
 }
