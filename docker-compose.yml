@@ -1,0 +1,34 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: besaz-db
+    environment:
+      POSTGRES_DB: besaz
+      POSTGRES_USER: besaz
+      POSTGRES_PASSWORD: besaz_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - besaz_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U besaz -d besaz"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Besaz.Api/Dockerfile
+    container_name: besaz-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__BesazDb: "Host=db;Port=5432;Database=besaz;Username=besaz;Password=besaz_dev;"
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5090:8080"
+
+volumes:
+  besaz_pgdata:

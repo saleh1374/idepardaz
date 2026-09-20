@@ -1,0 +1,109 @@
+{
+  "title": "پاوربانک USB-C با شارژ سریع",
+  "summary": "پاوربانک با سلول 18650، مدار حفاظت BMS و خروجی USB-C — پروژهٔ HIGH با دروازهٔ ایمنی کامل",
+  "description": "پروژهٔ پرچم‌دار فاز بعد: پاوربانک ماژولار با سلول‌های 18650، BMS تک‌سلولی/چندسلولی، مبدل افزاینده و خروجی USB-C PD. این Recipe در ویترین اصلی قرار نمی‌گیرد تا اعتماد و Safety Gate کامل شکل بگیرد (استراتژی فاز ۰).",
+  "category": "power",
+  "difficulty": "intermediate",
+  "safetyLevel": "HIGH",
+  "estimatedMinutes": 240,
+  "skills": ["لحیم‌کاری پایه", "اصول ایمنی باتری لیتیومی"],
+  "parameters": [
+    {
+      "key": "capacityMah",
+      "label": "ظرفیت (mAh)",
+      "type": "integer",
+      "min": 5000,
+      "max": 30000,
+      "step": 1000,
+      "default": 10000,
+      "affects": [
+        { "logicalPartId": "CELL-18650", "expression": "ceil(capacityMah / 3000)" },
+        { "logicalPartId": "BMS-1S", "expression": "1" }
+      ]
+    },
+    {
+      "key": "outputSpec",
+      "label": "نوع خروجی",
+      "type": "enum",
+      "default": "USB-C PD 18W",
+      "options": [
+        { "value": "USB-A 5V/2A", "label": "USB-A 5V/2A" },
+        { "value": "USB-C PD 18W", "label": "USB-C PD 18W" },
+        { "value": "USB-C PD 65W", "label": "USB-C PD 65W" }
+      ],
+      "affects": [
+        { "logicalPartId": "BOOST-5V-USB", "expression": "1" },
+        { "logicalPartId": "USB-C-PD-MODULE", "expression": "outputSpec == 'USB-C PD 18W' || outputSpec == 'USB-C PD 65W' ? 1 : 0" }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "logicalPartId": "CELL-18650",
+      "role": "Required",
+      "qtyFormula": "ceil(capacityMah / 3000)",
+      "alternatives": ["CELL-21700"],
+      "notes": "فقط سلول دارای مدار حفاظت داخلی یا همراه BMS مناسب استفاده شود."
+    },
+    {
+      "logicalPartId": "BMS-1S",
+      "role": "Required",
+      "qtyFormula": "1",
+      "notes": "BMS جریان‌گذر باید با جریان شارژ/دشارژ سازگار باشد (NEEDS ENGINEERING REVIEW)."
+    },
+    {
+      "logicalPartId": "BOOST-5V-USB",
+      "role": "Required",
+      "qtyFormula": "1",
+      "notes": "برای خروجی 5V/2A از مبدل افزایندهٔ 5 ولت استفاده می‌شود."
+    },
+    {
+      "logicalPartId": "USB-C-PD-MODULE",
+      "role": "Optional",
+      "qtyFormula": "outputSpec == 'USB-C PD 18W' || outputSpec == 'USB-C PD 65W' ? 1 : 0",
+      "notes": "ماژول PD با مذاکرهٔ مشخصات؛ قبل از خرید سازگاری با ولتاژ سلول را بررسی کنید (NEEDS ENGINEERING REVIEW)."
+    },
+    {
+      "logicalPartId": "TP4056-CHARGER",
+      "role": "Required",
+      "qtyFormula": "1",
+      "notes": "ماژول شارژر 1 سلول؛ ورودی میکرو-USB/USB-C جدا از خروجی."
+    },
+    {
+      "logicalPartId": "ENCLOSURE-18650",
+      "role": "Required",
+      "qtyFormula": "1",
+      "alternatives": ["ENCLOSURE-PRINT3D"],
+      "notes": "محفظهٔ استاندارد 18650 یا چاپ سه‌بعدی."
+    },
+    {
+      "logicalPartId": "WIRE-22AWG",
+      "role": "Required",
+      "qtyFormula": "1",
+      "notes": "برای اتصالات اصلی از سیم با سطح مقطع مناسب استفاده شود (NEEDS ENGINEERING REVIEW)."
+    }
+  ],
+  "tools": ["هویه ۳۰–۶۰ وات", "مولتی‌متر", "دسته کمکی", "نوار مسی / سیم ۲۲AWG", "هیت‌شرینک"],
+  "steps": [
+    { "n": 1, "title": "آماده‌سازی سلول‌ها و تست ولتاژ", "description": "هر سلول را با مولتی‌متر تست کنید؛ ولتاژ ۳.۰ تا ۴.۲ ولت.", "safety": "تست با مولتی‌متر قبل از هر اتصال؛ سلول متورم یا آسیب‌دیده هرگز استفاده نشود." },
+    { "n": 2, "title": "نصب BMS", "description": "BMS را مطابق دیتاشیت به سلول(ها) لحیم کنید؛ ترتیب اتصال B- و سپس B+.", "safety": "اتصال اشتباه BMS می‌تواند سلول را آتش بزند (NEEDS ENGINEERING REVIEW)." },
+    { "n": 3, "title": "اتصال شارژر و مبدل", "description": "خروجی شارژر به ورودی BMS و خروجی سلول به ورودی مبدل افزاینده.", "safety": "عایق حرارتی بین سلول و مدار رعایت شود." },
+    { "n": 4, "title": "مونتاژ در محفظه", "description": "قطعات را در محفظه بچینید و سیم‌ها را مرتب ایزوله کنید.", "safety": "هیچ سطح رسانایی نباید آزاد باشد؛ تست اتصال کوتاه با مولتی‌متر قبل از بستن." },
+    { "n": 5, "title": "شارژ و تست نهایی", "description": "اولین شارژ زیر نظر و دور از مواد قابل اشتعال انجام شود.", "safety": "شارژ اولیه زیر نظر؛ اگر باتری داغ شد بلافاصله جدا کنید." }
+  ],
+  "tests": [
+    { "name": "ولتاژ خروجی بی‌باری", "expected": "5V ± 5% — NEEDS ENGINEERING REVIEW" },
+    { "name": "جریان دشارژ نامی", "expected": "مطابق دیتاشیت مبدل — NEEDS ENGINEERING REVIEW" },
+    { "name": "دمای محفظه پس از ۳۰ دقیقه شارژ", "expected": "کمتر از ۴۵ درجه — NEEDS ENGINEERING REVIEW" }
+  ],
+  "safetyWarnings": [
+    "هرگز سلول لیتیومی بدون BMS مناسب استفاده نشود — NEEDS ENGINEERING REVIEW",
+    "شارژ اولیه همیشه زیر نظر و دور از مواد قابل اشتعال انجام شود",
+    "این پروژه برای افراد زیر ۱۸ سال بدون نظارت بزرگ‌سال مجاز نیست",
+    "باتری متورم، نشتی‌دار یا آسیب‌دیده هرگز استفاده نشود",
+    "در صورت هرگونه حرارت غیرعادی، مدار را بلافاصله جدا کنید"
+  ],
+  "license": "CC-BY-NC-4.0",
+  "authorId": "besaz-team",
+  "reviewerIds": ["besaz-team"]
+}

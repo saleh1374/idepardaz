@@ -1,0 +1,33 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+artifacts/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Env
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# SQLite runtime
+*.db
+*.db-shm
+*.db-wal

@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://besaz.ir/schemas/recipe.schema.json",
+  "title": "Recipe Payload",
+  "description": "استاندارد رسمی Recipe در پلتفرم بساز. این فایل، بدنه‌ای است که داخل RecipeVersion ذخیره می‌شود؛ نسخه، id و وضعیت توسط سیستم مدیریت می‌شوند.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title", "category", "difficulty", "safetyLevel", "estimatedMinutes",
+    "skills", "components", "tools", "steps", "safetyWarnings", "license"
+  ],
+  "properties": {
+    "title": { "type": "string", "minLength": 3, "maxLength": 120, "description": "عنوان فارسی Recipe" },
+    "summary": { "type": "string", "maxLength": 500, "description": "خلاصهٔ یک‌خطی برای کارت/SEO" },
+    "description": { "type": "string", "maxLength": 5000, "description": "توضیح کامل" },
+    "category": {
+      "type": "string",
+      "enum": ["power", "lighting", "audio", "sensor", "robot", "home", "tool", "other"],
+      "description": "دسته‌بندی"
+    },
+    "difficulty": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+    "safetyLevel": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    "estimatedMinutes": { "type": "integer", "minimum": 1 },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 2 },
+      "minItems": 1,
+      "description": "مهارت‌های پیش‌نیاز"
+    },
+    "parameters": {
+      "type": "array",
+      "description": "پارامترهای قابل انتخاب کاربر؛ بخشی از «Recipe پارامتری»",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "type", "label"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$" },
+          "label": { "type": "string", "description": "برچسب فارسی نمایشی" },
+          "type": { "type": "string", "enum": ["integer", "enum", "boolean"] },
+          "min": { "type": "integer" },
+          "max": { "type": "integer" },
+          "step": { "type": "integer" },
+          "default": { "oneOf": [{ "type": "integer" }, { "type": "string" }, { "type": "boolean" }] },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value", "label"],
+              "properties": {
+                "value": { "type": ["string", "integer"] },
+                "label": { "type": "string" }
+              }
+            }
+          },
+          "affects": {
+            "type": "array",
+            "description": "فرمول‌های تأثیر پارامتر بر قطعات",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["logicalPartId", "expression"],
+              "properties": {
+                "logicalPartId": { "type": "string" },
+                "expression": { "type": "string", "description": "مثال: ceil(capacityMah / 3000)" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["logicalPartId", "role"],
+        "properties": {
+          "logicalPartId": { "type": "string", "description": "شناسهٔ LogicalPart — Recipe هرگز به فروشگاه وابسته نیست" },
+          "role": { "type": "string", "enum": ["Required", "Optional", "Alternative"] },
+          "qtyFormula": {
+            "type": "string",
+            "description": "عدد ثابت یا فرمول از پارامترها. مثال: ceil(capacityMah / 3000)"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "شناسهٔ LogicalPartهای جایگزین"
+          },
+          "notes": { "type": "string", "description": "نکتهٔ فنی برای کاربر (به فارسی)" }
+        }
+      }
+    },
+    "tools": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["n", "title"],
+        "properties": {
+          "n": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string" },
+          "description": { "type": "string", "maxLength": 4000 },
+          "safety": { "type": "string", "description": "هشدار ایمنی مرحله‌ای" }
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "description": "تست‌های تأیید نهایی (صحت‌سنجی)",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "expected"],
+        "properties": {
+          "name": { "type": "string" },
+          "expected": { "type": "string" },
+          "tolerance": { "type": "string" }
+        }
+      }
+    },
+    "safetyWarnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "برای HIGH/CRITICAL الزامی و غیرقابل حذف"
+    },
+    "license": { "type": "string", "description": "پیش‌فرض: CC-BY-NC-4.0" },
+    "authorId": { "type": "string" },
+    "reviewerIds": { "type": "array", "items": { "type": "string" } }
+  }
+}

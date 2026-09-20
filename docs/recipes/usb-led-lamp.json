@@ -1,0 +1,82 @@
+{
+  "title": "چراغ LED USB",
+  "summary": "یک چراغ مطالعهٔ ساده و ایمن با LED سفید و کابل USB — بدون نیاز به لحیم‌کاری پیشرفته",
+  "description": "کم‌خطرترین و مقرون‌به‌صرفه‌ترین پروژه برای آزمایش بازار: یک LED ۵ میلی‌متری + مقاومت محدودکنندهٔ جریان + کابل USB. روشن، قابل حمل و از پورت USB لپ‌تاپ یا آداپتور ۵ ولت تغذیه می‌شود.",
+  "category": "lighting",
+  "difficulty": "beginner",
+  "safetyLevel": "LOW",
+  "estimatedMinutes": 30,
+  "skills": ["آشنایی پایه با مدار الکتریکی", "محکم‌کردن اتصال (پیچاندن/لحیم‌کاری ساده)"],
+  "parameters": [
+    {
+      "key": "ledColor",
+      "label": "رنگ LED",
+      "type": "enum",
+      "default": "white",
+      "options": [
+        { "value": "white", "label": "سفید" },
+        { "value": "warmWhite", "label": "سفید گرم" },
+        { "value": "red", "label": "قرمز" }
+      ]
+    },
+    {
+      "key": "includeSwitch",
+      "label": "کلید قطع/وصل",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "ledCount",
+      "label": "تعداد LED",
+      "type": "integer",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 1
+    }
+  ],
+  "components": [
+    {
+      "logicalPartId": "LED-5MM-WHITE",
+      "role": "Required",
+      "qtyFormula": "ledCount",
+      "alternatives": ["LED-5MM-RED"],
+      "notes": "برای رنگ‌های مختلف، شناسهٔ LogicalPart متناظر جایگزین می‌شود."
+    },
+    {
+      "logicalPartId": "RES-470",
+      "role": "Required",
+      "qtyFormula": "ledCount",
+      "notes": "برای ۵ ولت و LED معمولی، ۴۷۰ اهم هر LED را زیر جریان ایمن نگه می‌دارد (NEEDS ENGINEERING REVIEW)."
+    },
+    {
+      "logicalPartId": "USB-A-CABLE",
+      "role": "Required",
+      "qtyFormula": "1",
+      "notes": "کابل USB که بتوان سرش را باز کرد یا کانکتور آداپتور دارد."
+    },
+    {
+      "logicalPartId": "SWITCH-SPDT",
+      "role": "Optional",
+      "qtyFormula": "includeSwitch == true ? 1 : 0"
+    }
+  ],
+  "tools": ["سیم‌چین", "نوار چسب برق / هیت‌شرینک", "هویه (اختیاری برای پروژهٔ ساده)"],
+  "steps": [
+    { "n": 1, "title": "آماده‌سازی کابل USB", "description": "سر کابل را باز کنید تا دو سیم (قرمز = ۵ ولت، مشکی = GND) نمایان شوند.", "safety": "هنگام بازکردن کابل، کابل نباید به برق وصل باشد." },
+    { "n": 2, "title": "اتصال مقاومت به LED", "description": "یک سر مقاومت ۴۷۰ اهم را به پایهٔ بلندتر LED (آند) وصل کنید.", "safety": "جهت قرارگیری LED را رعایت کنید؛ اتصال معکوس LED را می‌سوزاند." },
+    { "n": 3, "title": "اتصال به کابل USB", "description": "سر دیگر مقاومت را به سیم قرمز (۵ ولت) و پایهٔ کوتاه LED را به سیم مشکی (GND) وصل کنید. در صورت انتخاب کلید، آن را در مسیر سیم قرمز بگذارید." },
+    { "n": 4, "title": "عایق‌کاری و تست", "description": "اتصالات را ایزوله کنید و به پورت USB وصل کنید. LED باید روشن شود.", "safety": "اگر LED داغ شد یا نوری نداد، فوراً جدا کنید و اتصالات را بازبینی کنید." }
+  ],
+  "tests": [
+    { "name": "روشن‌شدن LED پس از اتصال به USB", "expected": "LED با روشنایی یکنواخت روشن شود" },
+    { "name": "دمای اتصالات پس از ۵ دقیقه", "expected": "بدون گرم‌شدن محسوس — NEEDS ENGINEERING REVIEW" }
+  ],
+  "safetyWarnings": [
+    "این پروژه با ولتاژ ایمن (۵ ولت USB) کار می‌کند؛ با این‌حال اتصال کوتاه را رعایت کنید.",
+    "هیچ‌گاه با مدار روشن لحیم‌کاری یا اتصال را لمس نکنید."
+  ],
+  "license": "CC-BY-NC-4.0",
+  "authorId": "besaz-team",
+  "reviewerIds": ["besaz-team"]
+}
