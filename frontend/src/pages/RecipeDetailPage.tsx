@@ -18,11 +18,15 @@ const safetyTone: Record<string, Tone> = {
 const catLabel: Record<string, string> = {
   lighting: 'روشنایی',
   power: 'توان',
+  cooling: 'خنک‌کننده',
+  testing: 'تست',
 }
 
 const catIcon: Record<string, string> = {
   lighting: '💡',
   power: '⚡',
+  cooling: '🌀',
+  testing: '🔬',
 }
 
 const roleLabel: Record<string, string> = {

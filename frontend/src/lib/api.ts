@@ -1,4 +1,5 @@
 import type {
+  BomItem,
   BomResult,
   CreateProjectResponse,
   IntentResult,
@@ -143,4 +144,58 @@ export const api = {
         productCount: number
       }>
     }>('/suppliers'),
+
+  /* Projects — individual */
+  getProject: (id: number) =>
+    request<{
+      id: number
+      title: string
+      description: string | null
+      userDisplayName: string
+      recipeId: string
+      recipeVersion: string
+      status: string
+      isPublic: boolean
+      bomId: number | null
+      parameters: Record<string, unknown>
+      createdAt: string
+      updatedAt: string
+    }>(`/projects/${id}`),
+
+  getBomForProject: (projectId: number) =>
+    request<{
+      isValid: boolean
+      bomId: number | null
+      total: number | null
+      recipeTitle: string
+      recipeVersion: string
+      items: BomItem[]
+      errors: string[]
+      warnings: string[]
+    }>(`/projects/${projectId}/bom`),
+
+  changeProjectStatus: (id: number, status: string) =>
+    request<{ id: number; status: string }>(`/projects/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  /* Orders */
+  createOrder: (body: { projectId: number; recipientName?: string; shippingAddress?: string }) =>
+    request<{
+      order: { id: number; projectId: number; status: string; total: number; items: BomItem[] }
+      payment: { id: number; gateway: string; status: string; amount: number; note: string }
+    }>('/orders', { method: 'POST', body: JSON.stringify(body) }),
+
+  getOrder: (id: number) =>
+    request<{
+      id: number
+      projectId: number
+      status: string
+      total: number
+      recipientName: string | null
+      shippingAddress: string | null
+      createdAt: string
+      items: BomItem[]
+    }>(`/orders/${id}`),
 }

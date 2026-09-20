@@ -70,7 +70,7 @@ const usps = [
 ]
 
 const stats = [
-  { value: '۲+', label: 'Recipe تأییدشده', icon: '📋' },
+  { value: '۵+', label: 'Recipe تأییدشده', icon: '📋' },
   { value: '۳', label: 'فروشگاه قطعات', icon: '🏪' },
   { value: '۱۴', label: 'قطعه در کاتالوگ', icon: '🧩' },
   { value: '۰', label: 'هزینهٔ ابهام', icon: '✨' },

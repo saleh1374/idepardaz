@@ -7,6 +7,8 @@ const categories = [
   { value: '', label: 'همه', icon: '📋' },
   { value: 'lighting', label: 'روشنایی', icon: '💡' },
   { value: 'power', label: 'توان', icon: '⚡' },
+  { value: 'cooling', label: 'خنک‌کننده', icon: '🌀' },
+  { value: 'testing', label: 'تست', icon: '🔬' },
 ]
 
 export default function RecipesPage() {

@@ -49,6 +49,19 @@ export default function Header() {
               {item.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `ml-1 grid h-8 w-8 place-items-center rounded-lg text-sm font-bold transition-colors ${
+                isActive
+                  ? 'bg-brand-100 text-brand-700'
+                  : 'bg-ink-100 text-ink-600 hover:bg-brand-100 hover:text-brand-700'
+              }`
+            }
+            title="پنل کاربری"
+          >
+            👤
+          </NavLink>
         </nav>
 
         {/* Mobile hamburger */}
@@ -95,6 +108,19 @@ export default function Header() {
               {item.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/profile"
+            onClick={() => setMobileOpen(false)}
+            className={({ isActive }) =>
+              `block rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                isActive
+                  ? 'bg-brand-50 text-brand-700'
+                  : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'
+              }`
+            }
+          >
+            👤 پنل کاربری
+          </NavLink>
         </nav>
       )}
     </header>

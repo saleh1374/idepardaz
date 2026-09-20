@@ -177,6 +177,9 @@ public static class SeedData
         {
             AddPending(pendingApprovals, db, recipesDir, "usb-led-lamp.json", "RLED-001", nowish);
             AddPending(pendingApprovals, db, recipesDir, "pb-001-powerbank.json", "PB-001", nowish);
+            AddPending(pendingApprovals, db, recipesDir, "usb-fan.json", "UFAN-001", nowish);
+            AddPending(pendingApprovals, db, recipesDir, "battery-tester.json", "BTEST-001", nowish);
+            AddPending(pendingApprovals, db, recipesDir, "emergency-light.json", "ELIGHT-001", nowish);
         }
 
         await db.SaveChangesAsync();

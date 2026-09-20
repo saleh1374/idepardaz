@@ -6,6 +6,8 @@ import RecipesPage from './pages/RecipesPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
 import PartsPage from './pages/PartsPage'
 import ProjectsPage from './pages/ProjectsPage'
+import ProjectDetailPage from './pages/ProjectDetailPage'
+import ProfilePage from './pages/ProfilePage'
 import WizardPage from './pages/WizardPage'
 
 export default function App() {
@@ -19,6 +21,8 @@ export default function App() {
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/parts" element={<PartsPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/wizard" element={<WizardPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -47,6 +47,11 @@ export default function Footer() {
                 ویزارد هوشمند
               </Link>
             </li>
+            <li>
+              <Link to="/profile" className="text-ink-400 transition-colors hover:text-white">
+                پنل کاربری
+              </Link>
+            </li>
           </ul>
         </div>
 

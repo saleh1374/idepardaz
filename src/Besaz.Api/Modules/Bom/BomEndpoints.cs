@@ -24,6 +24,7 @@ public static class BomEndpoints
         projects.MapPost("/", CreateProject);
         projects.MapGet("/", ListProjects);
         projects.MapGet("/{id:long}", GetProject);
+        projects.MapGet("/{id:long}/bom", GetBomForProject);
         projects.MapPatch("/{id:long}/status", ChangeStatus);
 
         return app;
@@ -218,6 +219,38 @@ public static class BomEndpoints
         });
         await db.SaveChangesAsync();
         return Results.Ok(new { id, status = next.ToString() });
+    }
+
+    /// <summary>دریافت BOM یک پروژه بر اساس BomId ذخیره‌شده.</summary>
+    private static async Task<IResult> GetBomForProject(AppDbContext db, long id)
+    {
+        var project = await db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+        if (project is null) return Results.NotFound(new { message = "پروژه یافت نشد." });
+        if (!project.BomId.HasValue)
+            return Results.Ok(new { isValid = false, bomId = (long?)null, total = (decimal?)null, recipeTitle = "", recipeVersion = "", items = Array.Empty<object>(), errors = new[] { "BOM برای این پروژه هنوز ساخته نشده." }, warnings = Array.Empty<string>() });
+
+        var bom = await db.Boms
+            .Include(b => b.Items)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == project.BomId.Value);
+        if (bom is null)
+            return Results.Ok(new { isValid = false, bomId = project.BomId, total = (decimal?)null, recipeTitle = "", recipeVersion = "", items = Array.Empty<object>(), errors = new[] { "BOM یافت نشد." }, warnings = Array.Empty<string>() });
+
+        return Results.Ok(new
+        {
+            isValid = bom.IsValid,
+            bomId = bom.Id,
+            total = bom.Total,
+            recipeTitle = bom.RecipeId ?? "",
+            recipeVersion = bom.RecipeVersionText ?? "",
+            errors = System.Text.Json.JsonSerializer.Deserialize<string[]>(bom.ValidationMessagesJson ?? "[]") ?? Array.Empty<string>(),
+            warnings = Array.Empty<string>(),
+            items = bom.Items.Select(i => new
+            {
+                i.LogicalPartId, i.LogicalPartName, i.Role, i.Quantity,
+                i.SupplierName, i.Sku, i.UnitPrice, i.LineTotal, i.StockStatus, i.Url,
+            }),
+        });
     }
 
     /// <summary>تبدیل Dictionary&lt;string, JsonElement&gt; به Dictionary با مقادیر سادهٔ .NET.</summary>
