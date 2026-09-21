@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+import { api } from '../lib/api'
 
 interface RecipeItem {
   id: string
@@ -31,8 +30,6 @@ const safetyLabel = (s: string) => {
   return map[s] ?? s
 }
 
-const formatDate = (d: string) => new Date(d).toLocaleDateString('fa-IR')
-
 export default function AdminRecipesPage() {
   const [recipes, setRecipes] = useState<RecipeItem[]>([])
   const [total, setTotal] = useState(0)
@@ -43,10 +40,10 @@ export default function AdminRecipesPage() {
   const load = () => {
     setLoading(true)
     setError(null)
-    fetch(`${BASE}/admin/recipes/pending`)
-      .then(r => { if (!r.ok) throw new Error('خطا'); return r.json() })
-      .then(d => { setRecipes(d.items); setTotal(d.total) })
-      .catch(e => setError(e.message))
+    api
+      .adminPendingRecipes()
+      .then((d) => { setRecipes(d.items); setTotal(d.total) })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'خطا'))
       .finally(() => setLoading(false))
   }
 
@@ -55,8 +52,7 @@ export default function AdminRecipesPage() {
   const approve = async (id: string) => {
     setActionId(id)
     try {
-      const res = await fetch(`${BASE}/admin/recipes/${id}/approve`, { method: 'POST' })
-      if (!res.ok) throw new Error('خطا در تأیید')
+      await api.adminApproveRecipe(id)
       setRecipes(prev => prev.filter(r => r.id !== id))
       setTotal(prev => prev - 1)
     } catch (e: unknown) {
@@ -69,8 +65,7 @@ export default function AdminRecipesPage() {
   const reject = async (id: string) => {
     setActionId(id)
     try {
-      const res = await fetch(`${BASE}/admin/recipes/${id}/reject`, { method: 'POST' })
-      if (!res.ok) throw new Error('خطا در رد')
+      await api.adminRejectRecipe(id)
       setRecipes(prev => prev.filter(r => r.id !== id))
       setTotal(prev => prev - 1)
     } catch (e: unknown) {
@@ -111,7 +106,7 @@ export default function AdminRecipesPage() {
                     <span className="rounded-full bg-ink-100 px-2 py-0.5 font-semibold text-ink-600">{safetyLabel(r.safetyLevel)}</span>
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 font-semibold text-gray-600">{r.status}</span>
                   </div>
-                  <div className="text-xs text-ink-400">تاریخ ایجاد: {formatDate(r.createdAt)}</div>
+                  <div className="text-xs text-ink-400">تاریخ ایجاد: {new Date(r.createdAt).toLocaleDateString('fa-IR')}</div>
                 </div>
                 <div className="flex gap-2">
                   <button

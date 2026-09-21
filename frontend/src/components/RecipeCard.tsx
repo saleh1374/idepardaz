@@ -13,6 +13,8 @@ const safetyTone: Record<string, Tone> = {
 const catIcon: Record<string, string> = {
   lighting: '💡',
   power: '⚡',
+  cooling: '🌀',
+  testing: '🔬',
 }
 
 export default function RecipeCard({ recipe }: { recipe: RecipeSummary }) {

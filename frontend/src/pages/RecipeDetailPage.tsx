@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import type { RecipeDetail } from '../lib/types'
 import { difficultyLabel, formatTime, safetyLabel } from '../lib/format'
@@ -7,6 +7,7 @@ import Badge, { type Tone } from '../components/Badge'
 import SafetyGate from '../components/SafetyGate'
 import ParameterForm, { defaultsFromParameters, type ParamValues } from '../components/ParameterForm'
 import BomPanel from '../components/BomPanel'
+import { useUser } from '../lib/UserContext'
 
 const safetyTone: Record<string, Tone> = {
   LOW: 'teal',
@@ -37,11 +38,18 @@ const roleLabel: Record<string, string> = {
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { hasRole } = useUser()
   const [detail, setDetail] = useState<RecipeDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [gatePassed, setGatePassed] = useState(false)
   const [params, setParams] = useState<ParamValues>({})
   const [activeTab, setActiveTab] = useState<'build' | 'details'>('build')
+  const [orderMode, setOrderMode] = useState<'none' | 'diy' | 'maker'>('none')
+  const [selectedMaker, setSelectedMaker] = useState<string | null>(null)
+  const [makers, setMakers] = useState<Array<{ id: string; displayName: string; city: string; rating: number; specialties: string }>>([])
+  const [orderSubmitting, setOrderSubmitting] = useState(false)
+  const [orderResult, setOrderResult] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -61,6 +69,65 @@ export default function RecipeDetailPage() {
       })
     return () => { alive = false }
   }, [id])
+
+  // بارگذاری صنعتگران
+  useEffect(() => {
+    api.listMakers().then(d => {
+      setMakers(d.items.map((m: any) => ({
+        id: m.id,
+        displayName: m.displayName,
+        city: m.city,
+        rating: m.rating,
+        specialties: m.specialties,
+      })))
+    }).catch(() => {})
+  }, [])
+
+  // ثبت سفارش DIY
+  const submitDIYOrder = async () => {
+    if (!id || !hasRole('Member', 'Guest')) {
+      navigate('/profile')
+      return
+    }
+    setOrderSubmitting(true)
+    setOrderResult(null)
+    try {
+      // ایجاد پروژه
+      const project = await api.createProject({
+        recipeId: id,
+        title: detail?.title ?? 'پروژه جدید',
+        parametersJson: JSON.stringify(params),
+      })
+      setOrderResult(`✅ پروژه شما ایجاد شد! شماره پروژه: ${project.project.id}. حالا قطعات را تهیه کنید و بسازید.`)
+    } catch (e) {
+      setOrderResult(e instanceof Error ? e.message : 'خطا در ثبت')
+    } finally {
+      setOrderSubmitting(false)
+    }
+  }
+
+  // ثبت سفارش صنعتگر
+  const submitMakerOrder = async () => {
+    if (!id || !selectedMaker || !hasRole('Member', 'Guest')) {
+      navigate('/profile')
+      return
+    }
+    setOrderSubmitting(true)
+    setOrderResult(null)
+    try {
+      const project = await api.createProject({
+        recipeId: id,
+        title: detail?.title ?? 'پروژه جدید',
+        parametersJson: JSON.stringify(params),
+        makerId: selectedMaker,
+      })
+      setOrderResult(`✅ سفارش ثبت شد! شماره پروژه: ${project.project.id}. صنعتگر قطعات را تهیه کرده و می‌سازد.`)
+    } catch (e) {
+      setOrderResult(e instanceof Error ? e.message : 'خطا در ثبت')
+    } finally {
+      setOrderSubmitting(false)
+    }
+  }
 
   if (error) {
     return (
@@ -209,6 +276,122 @@ export default function RecipeDetailPage() {
                   </div>
                 </section>
               )}
+
+              {/* ═══════ جریان سفارش: DIY vs صنعتگر ═══════ */}
+              <section className="mt-10 rounded-2xl border-2 border-brand-200 bg-gradient-to-br from-brand-50 to-teal-50 p-6">
+                <h2 className="text-xl font-black text-ink-900">🛒 چگونه بسازم؟</h2>
+                <p className="mt-2 text-sm text-ink-600">
+                  دو راه دارید: خودتان قطعات را بخرید و بسازید، یا به صنعتگران ما بسپارید.
+                </p>
+
+                {orderResult && (
+                  <div className={`mt-4 rounded-xl p-4 text-sm font-medium ${
+                    orderResult.includes('✅')
+                      ? 'border border-green-200 bg-green-50 text-green-700'
+                      : 'border border-rose-200 bg-rose-50 text-rose-700'
+                  }`}>
+                    {orderResult}
+                  </div>
+                )}
+
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  {/* DIY */}
+                  <div
+                    className={`cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                      orderMode === 'diy'
+                        ? 'border-brand-500 bg-white shadow-md'
+                        : 'border-ink-200 bg-white hover:border-brand-300 hover:shadow-sm'
+                    }`}
+                    onClick={() => setOrderMode('diy')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🔨</span>
+                      <div>
+                        <h3 className="text-base font-bold text-ink-900">خودم می‌سازم (DIY)</h3>
+                        <p className="text-xs text-ink-500">قطعات را می‌خرم و با دستور می‌سازم</p>
+                      </div>
+                    </div>
+                    <ul className="mt-4 space-y-2 text-xs text-ink-600">
+                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قیمت فقط قطعات</li>
+                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> آموزش گام‌به‌گام</li>
+                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> بدون هزینه دستمزد</li>
+                    </ul>
+                    {orderMode === 'diy' && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); submitDIYOrder() }}
+                        disabled={orderSubmitting}
+                        className="mt-4 w-full rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
+                      >
+                        {orderSubmitting ? 'در حال ثبت...' : '🔨 شروع ساخت'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Maker */}
+                  <div
+                    className={`cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                      orderMode === 'maker'
+                        ? 'border-teal-500 bg-white shadow-md'
+                        : 'border-ink-200 bg-white hover:border-teal-300 hover:shadow-sm'
+                    }`}
+                    onClick={() => setOrderMode('maker')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🏭</span>
+                      <div>
+                        <h3 className="text-base font-bold text-ink-900">صنعتگر بسازد</h3>
+                        <p className="text-xs text-ink-500">قطعات و ساخت را به صنعتگر بسپارید</p>
+                      </div>
+                    </div>
+                    <ul className="mt-4 space-y-2 text-xs text-ink-600">
+                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قطعات + دستمزد + ارسال</li>
+                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> تحویل آماده</li>
+                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> ضمانت کیفیت</li>
+                    </ul>
+                    {orderMode === 'maker' && (
+                      <div className="mt-4 space-y-3">
+                        <div>
+                          <label className="mb-1 block text-xs font-semibold text-ink-700">صنعتگر را انتخاب کنید:</label>
+                          <select
+                            value={selectedMaker ?? ''}
+                            onChange={e => setSelectedMaker(e.target.value || null)}
+                            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+                          >
+                            <option value="">انتخاب صنعتگر...</option>
+                            {makers.map(m => (
+                              <option key={m.id} value={m.id}>{m.displayName} ({m.city}) — ⭐ {m.rating.toFixed(1)}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); submitMakerOrder() }}
+                          disabled={orderSubmitting || !selectedMaker}
+                          className="w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50"
+                        >
+                          {orderSubmitting ? 'در حال ثبت...' : '🏭 ثبت سفارش'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* قیمت تخمینی */}
+                {orderMode === 'maker' && (
+                  <div className="mt-4 rounded-xl bg-white p-4 text-sm">
+                    <h4 className="font-bold text-ink-800">💰 تخمین قیمت نهایی</h4>
+                    <div className="mt-2 space-y-1 text-ink-600">
+                      <div className="flex justify-between"><span>قطعات (تخمینی)</span><span className="font-semibold">— تومان</span></div>
+                      <div className="flex justify-between"><span>دستمزد صنعتگر</span><span className="font-semibold">— تومان</span></div>
+                      <div className="flex justify-between"><span>هزینه ارسال</span><span className="font-semibold">— تومان</span></div>
+                      <div className="border-t border-ink-200 pt-2 font-bold text-brand-700">
+                        <div className="flex justify-between"><span>جمع کل</span><span>پس از BOM مشخص می‌شود</span></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
             </div>
           )}
 

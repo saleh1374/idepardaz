@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+import { api } from '../lib/api'
 
 interface UserItem {
   id: string
@@ -21,11 +20,9 @@ const roleBadge = (r: string) => {
 }
 
 const roleLabel = (r: string) => {
-  const map: Record<string, string> = { Admin: 'مدیر', Reviewer: 'بازبین', Member: 'کاربر' }
+  const map: Record<string, string> = { Admin: 'مدیر', Reviewer: 'بازبین', Member: 'کاربر', Engineer: 'مهندس', SafetyReviewer: 'بازبین ایمنی' }
   return map[r] ?? r
 }
-
-const formatDate = (d: string) => new Date(d).toLocaleDateString('fa-IR')
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserItem[]>([])
@@ -38,10 +35,10 @@ export default function AdminUsersPage() {
   const load = (p: number) => {
     setLoading(true)
     setError(null)
-    fetch(`${BASE}/admin/users?page=${p}`)
-      .then(r => { if (!r.ok) throw new Error('خطا'); return r.json() })
-      .then(d => { setUsers(d.items); setTotal(d.total) })
-      .catch(e => setError(e.message))
+    api
+      .adminListUsers(p)
+      .then((d) => { setUsers(d.items); setTotal(d.total) })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'خطا'))
       .finally(() => setLoading(false))
   }
 
@@ -50,12 +47,7 @@ export default function AdminUsersPage() {
   const changeRole = async (id: string, role: string) => {
     setChangingId(id)
     try {
-      const res = await fetch(`${BASE}/admin/users/${id}/role`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
-      })
-      if (!res.ok) throw new Error('خطا در تغییر نقش')
+      await api.adminChangeUserRole(id, role)
       setUsers(prev => prev.map(u => u.id === id ? { ...u, role } : u))
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'خطا')
@@ -97,7 +89,7 @@ export default function AdminUsersPage() {
                   <td className="px-5 py-3">
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${roleBadge(u.role)}`}>{roleLabel(u.role)}</span>
                   </td>
-                  <td className="px-5 py-3 text-xs text-ink-500">{formatDate(u.createdAt)}</td>
+                  <td className="px-5 py-3 text-xs text-ink-500">{new Date(u.createdAt).toLocaleDateString('fa-IR')}</td>
                   <td className="px-5 py-3">
                     <select
                       value={u.role}
@@ -107,6 +99,7 @@ export default function AdminUsersPage() {
                     >
                       <option value="Member">کاربر</option>
                       <option value="Reviewer">بازبین</option>
+                      <option value="Engineer">مهندس</option>
                       <option value="Admin">مدیر</option>
                     </select>
                   </td>

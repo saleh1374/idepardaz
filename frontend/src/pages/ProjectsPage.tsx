@@ -112,6 +112,12 @@ export default function ProjectsPage() {
 
               <div className="mt-4 flex gap-2">
                 <Link
+                  to={`/projects/${p.id}`}
+                  className="btn-primary flex-1 text-center text-xs"
+                >
+                  مشاهدهٔ پروژه ←
+                </Link>
+                <Link
                   to={`/recipes/${encodeURIComponent(p.recipeId)}`}
                   className="btn-outline flex-1 text-center text-xs"
                 >

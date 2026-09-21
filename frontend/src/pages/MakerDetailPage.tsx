@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
 interface MakerService {
   id: number
@@ -17,7 +16,7 @@ interface MakerDetail {
   id: string
   displayName: string
   bio: string | null
-  specialties: string | null  // JSON array string from API
+  specialties: string | null
   city: string | null
   avatarUrl: string | null
   isVerified: boolean
@@ -58,7 +57,6 @@ export default function MakerDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Quote modal state
   const [quoteOpen, setQuoteOpen] = useState(false)
   const [quoteDesc, setQuoteDesc] = useState('')
   const [quoteSending, setQuoteSending] = useState(false)
@@ -68,12 +66,9 @@ export default function MakerDetailPage() {
     if (!id) return
     setLoading(true)
     setError(null)
-    fetch(`${BASE}/makers/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`خطای سرور (${res.status})`)
-        return res.json()
-      })
-      .then((data: MakerDetail) => setMaker(data))
+    api
+      .getMaker(id)
+      .then((data) => setMaker(data as unknown as MakerDetail))
       .catch((e) => setError(e instanceof Error ? e.message : 'خطا در بارگذاری'))
       .finally(() => setLoading(false))
   }, [id])
@@ -84,12 +79,7 @@ export default function MakerDetailPage() {
     setQuoteSending(true)
     setQuoteResult(null)
     try {
-      const res = await fetch(`${BASE}/makers/quote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ makerId: id, description: quoteDesc.trim() }),
-      })
-      if (!res.ok) throw new Error(`خطای سرور (${res.status})`)
+      await api.requestQuote({ makerId: id, description: quoteDesc.trim() })
       setQuoteResult('درخواست نقل‌قول با موفقیت ارسال شد.')
       setQuoteDesc('')
       setTimeout(() => { setQuoteOpen(false); setQuoteResult(null) }, 2000)
@@ -128,9 +118,14 @@ export default function MakerDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <Link to="/makers" className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
-        ← فهرست صنعتگران
-      </Link>
+      {/* Breadcrumb */}
+      <nav className="mb-6 flex items-center gap-2 text-xs text-ink-400">
+        <Link to="/" className="hover:text-brand-600 transition-colors">خانه</Link>
+        <span>/</span>
+        <Link to="/makers" className="hover:text-brand-600 transition-colors">صنعتگران</Link>
+        <span>/</span>
+        <span className="text-ink-600">{maker.displayName}</span>
+      </nav>
 
       {/* Header */}
       <div className="animate-fadeInUp rounded-xl border border-ink-200 bg-white p-6 shadow-sm">

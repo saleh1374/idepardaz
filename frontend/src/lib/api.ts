@@ -78,6 +78,8 @@ export const api = {
     title?: string
     recipeId: string
     parameters?: Record<string, number | string | boolean>
+    parametersJson?: string
+    makerId?: string
   }) => request<CreateProjectResponse>('/projects', { method: 'POST', body: JSON.stringify(body) }),
 
   listProjects: () =>
@@ -345,8 +347,10 @@ export const api = {
   adminRejectRecipe: (id: string) =>
     request<{ id: string; status: string }>(`/admin/recipes/${id}/reject`, { method: 'POST' }),
 
-  adminListOrders: (page = 1) =>
-    request<{
+  adminListOrders: (page = 1, status?: string) => {
+    const q = new URLSearchParams({ page: page.toString() })
+    if (status) q.set('status', status)
+    return request<{
       page: number
       pageSize: number
       total: number
@@ -358,7 +362,8 @@ export const api = {
         recipientName: string | null
         createdAt: string
       }>
-    }>(`/admin/orders?page=${page}`),
+    }>(`/admin/orders?${q.toString()}`)
+  },
 
   adminAuditLog: (page = 1) =>
     request<{

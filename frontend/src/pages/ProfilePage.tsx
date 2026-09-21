@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { useUser, ROLE_LABELS, ROLE_ICONS, type UserRole } from '../lib/UserContext'
 
 interface ProjectSummary {
   id: number
@@ -10,13 +11,6 @@ interface ProjectSummary {
   status: string
   bomId: number | null
   createdAt: string
-}
-
-const roleLabel: Record<string, string> = {
-  Member: 'عضو',
-  Engineer: 'مهندس',
-  SafetyReviewer: 'بازبین ایمنی',
-  Admin: 'مدیر',
 }
 
 const statusLabel: Record<string, string> = {
@@ -51,19 +45,8 @@ function formatDate(dateStr: string): string {
   } catch { return dateStr }
 }
 
-// MVP: user is stored in localStorage
-function getCurrentUser(): { id: string; name: string } {
-  const stored = localStorage.getItem('besaz-user')
-  if (stored) {
-    try { return JSON.parse(stored) } catch { /* fallthrough */ }
-  }
-  const defaultUser = { id: '00000000-0000-0000-0000-000000000004', name: 'کاربر مهمان' }
-  localStorage.setItem('besaz-user', JSON.stringify(defaultUser))
-  return defaultUser
-}
-
 export default function ProfilePage() {
-  const [user, setUser] = useState(getCurrentUser)
+  const { user, setUser } = useUser()
   const [editing, setEditing] = useState(false)
   const [nameInput, setNameInput] = useState(user.name)
   const [projects, setProjects] = useState<ProjectSummary[]>([])
@@ -78,14 +61,57 @@ export default function ProfilePage() {
   }, [])
 
   const saveProfile = () => {
-    const updated = { ...user, name: nameInput.trim() || user.name }
-    setUser(updated)
-    localStorage.setItem('besaz-user', JSON.stringify(updated))
+    setUser({ ...user, name: nameInput.trim() || user.name })
     setEditing(false)
   }
 
   const projectCount = projects.length
   const completedCount = projects.filter(p => p.status === 'Completed' || p.status === 'Published').length
+
+  // لینک‌های متناسب با نقش
+  const roleLinks: Record<UserRole, Array<{ to: string; label: string; icon: string }>> = {
+    Guest: [
+      { to: '/recipes', label: 'دستورها', icon: '📋' },
+      { to: '/parts', label: 'قطعات', icon: '🧩' },
+      { to: '/makers', label: 'صنعتگران', icon: '🏭' },
+      { to: '/wizard', label: 'ویزارد', icon: '✨' },
+    ],
+    Member: [
+      { to: '/recipes', label: 'دستورها', icon: '📋' },
+      { to: '/parts', label: 'قطعات', icon: '🧩' },
+      { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
+      { to: '/orders', label: 'سفارشات', icon: '📦' },
+    ],
+    Engineer: [
+      { to: '/recipes', label: 'دستورها', icon: '📋' },
+      { to: '/parts', label: 'قطعات', icon: '🧩' },
+      { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
+      { to: '/wizard', label: 'ویزارد', icon: '✨' },
+    ],
+    SafetyReviewer: [
+      { to: '/recipes', label: 'دستورها', icon: '📋' },
+      { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
+    ],
+    Supplier: [
+      { to: '/supplier/dashboard', label: 'داشبورد', icon: '📊' },
+      { to: '/supplier/products', label: 'محصولات', icon: '📦' },
+      { to: '/supplier/orders', label: 'سفارشات', icon: '📋' },
+    ],
+    Maker: [
+      { to: '/maker/dashboard', label: 'داشبورد', icon: '📊' },
+      { to: '/maker/jobs', label: 'کارها', icon: '🔨' },
+      { to: '/maker/services', label: 'خدمات', icon: '🛠️' },
+    ],
+    Admin: [
+      { to: '/admin', label: 'داشبورد', icon: '⚙️' },
+      { to: '/admin/users', label: 'کاربران', icon: '👥' },
+      { to: '/admin/recipes', label: 'دستورها', icon: '📋' },
+      { to: '/admin/orders', label: 'سفارشات', icon: '📦' },
+      { to: '/admin/suppliers', label: 'تأمین‌کنندگان', icon: '🏪' },
+    ],
+  }
+
+  const links = roleLinks[user.role] ?? roleLinks.Guest
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -105,7 +131,7 @@ export default function ProfilePage() {
               {user.name.charAt(0)}
             </span>
             <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-bold text-brand-700">
-              {roleLabel['Member']}
+              {ROLE_ICONS[user.role]} {ROLE_LABELS[user.role]}
             </span>
           </div>
 
@@ -142,98 +168,84 @@ export default function ProfilePage() {
           </div>
 
           {/* Stats */}
-          <div className="flex gap-4 sm:flex-col">
-            <div className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-center">
-              <p className="text-2xl font-black text-brand-700">{projectCount}</p>
-              <p className="text-xs text-ink-500">پروژه</p>
+          {(user.role === 'Member' || user.role === 'Guest') && (
+            <div className="flex gap-4 sm:flex-col">
+              <div className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-center">
+                <p className="text-2xl font-black text-brand-700">{projectCount}</p>
+                <p className="text-xs text-ink-500">پروژه</p>
+              </div>
+              <div className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-center">
+                <p className="text-2xl font-black text-teal-700">{completedCount}</p>
+                <p className="text-xs text-ink-500">تکمیل‌شده</p>
+              </div>
             </div>
-            <div className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-center">
-              <p className="text-2xl font-black text-teal-700">{completedCount}</p>
-              <p className="text-xs text-ink-500">تکمیل‌شده</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Quick Links — متناسب با نقش */}
       <div className="animate-fadeInUp mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4" style={{ animationDelay: '100ms' }}>
-        <Link to="/recipes" className="card card-hover group flex items-center gap-3 p-4">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-lg group-hover:scale-110 transition-transform">📋</span>
-          <div>
-            <p className="text-sm font-bold text-ink-900">دستورها</p>
-            <p className="text-xs text-ink-500">مرور همه</p>
-          </div>
-        </Link>
-        <Link to="/parts" className="card card-hover group flex items-center gap-3 p-4">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-lg group-hover:scale-110 transition-transform">🧩</span>
-          <div>
-            <p className="text-sm font-bold text-ink-900">قطعات</p>
-            <p className="text-xs text-ink-500">کاتالوگ</p>
-          </div>
-        </Link>
-        <Link to="/wizard" className="card card-hover group flex items-center gap-3 p-4">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-purple-50 text-lg group-hover:scale-110 transition-transform">✨</span>
-          <div>
-            <p className="text-sm font-bold text-ink-900">ویزارد</p>
-            <p className="text-xs text-ink-500">شروع جدید</p>
-          </div>
-        </Link>
-        <Link to="/projects" className="card card-hover group flex items-center gap-3 p-4">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-lg group-hover:scale-110 transition-transform">📁</span>
-          <div>
-            <p className="text-sm font-bold text-ink-900">پروژه‌ها</p>
-            <p className="text-xs text-ink-500">همه</p>
-          </div>
-        </Link>
+        {links.map((link) => (
+          <Link key={link.to} to={link.to} className="card card-hover group flex items-center gap-3 p-4">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-lg group-hover:scale-110 transition-transform">
+              {link.icon}
+            </span>
+            <div>
+              <p className="text-sm font-bold text-ink-900">{link.label}</p>
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {/* Recent Projects */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-black text-ink-900">پروژه‌های اخیر</h2>
-          <Link to="/projects" className="text-xs font-bold text-brand-600 hover:text-brand-700">همه ←</Link>
-        </div>
-
-        {projectsLoading && (
-          <div className="mt-4 space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="card h-16 animate-pulse bg-ink-100" />
-            ))}
+      {/* Recent Projects — فقط برای Member و Guest */}
+      {(user.role === 'Member' || user.role === 'Guest') && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-black text-ink-900">پروژه‌های اخیر</h2>
+            <Link to="/projects" className="text-xs font-bold text-brand-600 hover:text-brand-700">همه ←</Link>
           </div>
-        )}
 
-        {!projectsLoading && projects.length === 0 && (
-          <div className="animate-fadeInUp mt-6 rounded-xl border border-dashed border-ink-300 bg-ink-50/50 p-8 text-center">
-            <span className="text-3xl">📁</span>
-            <p className="mt-3 text-sm font-bold text-ink-600">هنوز پروژه‌ای ندارید</p>
-            <Link to="/recipes" className="btn-primary mt-4 inline-flex text-xs">
-              شروع اولین پروژه ←
-            </Link>
-          </div>
-        )}
+          {projectsLoading && (
+            <div className="mt-4 space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="card h-16 animate-pulse bg-ink-100" />
+              ))}
+            </div>
+          )}
 
-        {!projectsLoading && projects.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {projects.slice(0, 5).map((p) => (
-              <Link
-                key={p.id}
-                to={`/projects/${p.id}`}
-                className="card card-hover flex items-center justify-between gap-4 p-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-ink-900 truncate">{p.title}</p>
-                  <p className="mt-0.5 text-xs text-ink-500">
-                    {p.recipeId} · {formatDate(p.createdAt)}
-                  </p>
-                </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusTone[p.status] ?? 'bg-ink-100 text-ink-700'}`}>
-                  {statusLabel[p.status] ?? p.status}
-                </span>
+          {!projectsLoading && projects.length === 0 && (
+            <div className="animate-fadeInUp mt-6 rounded-xl border border-dashed border-ink-300 bg-ink-50/50 p-8 text-center">
+              <span className="text-3xl">📁</span>
+              <p className="mt-3 text-sm font-bold text-ink-600">هنوز پروژه‌ای ندارید</p>
+              <Link to="/recipes" className="btn-primary mt-4 inline-flex text-xs">
+                شروع اولین پروژه ←
               </Link>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+
+          {!projectsLoading && projects.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {projects.slice(0, 5).map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/projects/${p.id}`}
+                  className="card card-hover flex items-center justify-between gap-4 p-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-ink-900 truncate">{p.title}</p>
+                    <p className="mt-0.5 text-xs text-ink-500">
+                      {p.recipeId} · {formatDate(p.createdAt)}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusTone[p.status] ?? 'bg-ink-100 text-ink-700'}`}>
+                    {statusLabel[p.status] ?? p.status}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Account Info */}
       <div className="animate-fadeInUp mt-8 card p-5" style={{ animationDelay: '200ms' }}>
@@ -241,6 +253,7 @@ export default function ProfilePage() {
         <p className="mt-2 text-xs leading-6 text-ink-500">
           در نسخهٔ آزمایشی، احراز هویت واقعی (JWT) متصل نیست. اطلاعات کاربر در مرورگر ذخیره می‌شود.
           شناسهٔ کاربری فعلی شما <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-ink-600" dir="ltr">{user.id.slice(0, 8)}…</code> است.
+          نقش فعلی: <span className="font-bold text-brand-700">{ROLE_LABELS[user.role]}</span>.
         </p>
       </div>
     </div>

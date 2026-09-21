@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+import { api } from '../lib/api'
 
 interface OrderItem {
   id: number
@@ -15,6 +14,7 @@ const statusBadge = (s: string) => {
   const map: Record<string, string> = {
     Pending: 'bg-yellow-100 text-yellow-700',
     Paid: 'bg-blue-100 text-blue-700',
+    Processing: 'bg-sky-100 text-sky-700',
     Shipped: 'bg-indigo-100 text-indigo-700',
     Delivered: 'bg-green-100 text-green-700',
     Cancelled: 'bg-red-100 text-red-700',
@@ -24,18 +24,16 @@ const statusBadge = (s: string) => {
 
 const statusLabel = (s: string) => {
   const map: Record<string, string> = {
-    Pending: 'در انتظار', Paid: 'پرداخت شده', Shipped: 'ارسال شده', Delivered: 'تحویل شده', Cancelled: 'لغو شده',
+    Pending: 'در انتظار', Paid: 'پرداخت شده', Processing: 'در حال پردازش',
+    Shipped: 'ارسال شده', Delivered: 'تحویل شده', Cancelled: 'لغو شده',
   }
   return map[s] ?? s
 }
 
-const formatPrice = (n: number) => new Intl.NumberFormat('fa-IR').format(n) + ' تومان'
-const formatDate = (d: string) => new Date(d).toLocaleDateString('fa-IR')
-
 const statusOptions = [
-  { value: '', label: 'همه وضعیت‌ها' },
   { value: 'Pending', label: '⏳ در انتظار' },
   { value: 'Paid', label: '💰 پرداخت شده' },
+  { value: 'Processing', label: '🔄 در حال پردازش' },
   { value: 'Shipped', label: '🚚 ارسال شده' },
   { value: 'Delivered', label: '✅ تحویل شده' },
   { value: 'Cancelled', label: '❌ لغو شده' },
@@ -49,19 +47,21 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const load = (p: number, status: string) => {
+  const load = (p: number, _status: string) => {
     setLoading(true)
     setError(null)
-    const params = new URLSearchParams({ page: p.toString() })
-    if (status) params.set('status', status)
-    fetch(`${BASE}/admin/orders?${params}`)
-      .then(r => { if (!r.ok) throw new Error('خطا'); return r.json() })
-      .then(d => { setOrders(d.items); setTotal(d.total) })
-      .catch(e => setError(e.message))
+    api
+      .adminListOrders(p)
+      .then((d) => { setOrders(d.items); setTotal(d.total) })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'خطا'))
       .finally(() => setLoading(false))
   }
 
   useEffect(() => { load(page, statusFilter) }, [page, statusFilter])
+
+  const filteredOrders = statusFilter
+    ? orders.filter(o => o.status === statusFilter)
+    : orders
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
@@ -77,7 +77,8 @@ export default function AdminOrdersPage() {
           onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
           className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm font-semibold text-ink-700"
         >
-          {statusOptions.filter(o => o.value !== '').map(o => (
+          <option value="">همه وضعیت‌ها</option>
+          {statusOptions.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
@@ -101,7 +102,7 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-50">
-              {orders.map(o => (
+              {filteredOrders.map(o => (
                 <tr key={o.id} className="hover:bg-ink-50/50">
                   <td className="px-5 py-3 font-mono text-xs text-ink-500">#{o.id}</td>
                   <td className="px-5 py-3 font-mono text-xs text-ink-600">#{o.projectId}</td>
@@ -109,11 +110,11 @@ export default function AdminOrdersPage() {
                   <td className="px-5 py-3">
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${statusBadge(o.status)}`}>{statusLabel(o.status)}</span>
                   </td>
-                  <td className="px-5 py-3 font-semibold text-ink-800">{formatPrice(o.total)}</td>
-                  <td className="px-5 py-3 text-xs text-ink-500">{formatDate(o.createdAt)}</td>
+                  <td className="px-5 py-3 font-semibold text-ink-800">{new Intl.NumberFormat('fa-IR').format(o.total)} تومان</td>
+                  <td className="px-5 py-3 text-xs text-ink-500">{new Date(o.createdAt).toLocaleDateString('fa-IR')}</td>
                 </tr>
               ))}
-              {orders.length === 0 && (
+              {filteredOrders.length === 0 && (
                 <tr><td colSpan={6} className="px-5 py-8 text-center text-ink-400">سفارشی یافت نشد</td></tr>
               )}
             </tbody>

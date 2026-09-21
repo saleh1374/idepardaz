@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+import { api } from '../lib/api'
 
 interface Maker {
   id: string
   displayName: string
   bio: string | null
-  specialties: string | null  // JSON array string from API
+  specialties: string | null
   city: string | null
   avatarUrl: string | null
   isVerified: boolean
@@ -17,7 +16,7 @@ interface Maker {
   createdAt: string
 }
 
-const cities = ['تهران', 'مشهد']
+const cities = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'کرج']
 
 function parseSpecialties(raw: string | null): string[] {
   if (!raw) return []
@@ -49,14 +48,9 @@ export default function MakersPage() {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    const q = new URLSearchParams({ page: String(page) })
-    if (city) q.set('city', city)
-    fetch(`${BASE}/makers?${q}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`خطای سرور (${res.status})`)
-        return res.json()
-      })
-      .then((data: { items: Maker[]; total: number }) => {
+    api
+      .listMakers({ city: city || undefined, page })
+      .then((data) => {
         setMakers(data.items ?? [])
         setTotal(data.total ?? 0)
       })
@@ -160,7 +154,7 @@ export default function MakersPage() {
       )}
 
       {/* Pagination */}
-      {!loading && total > 50 && (
+      {!loading && total > 6 && (
         <div className="mt-6 flex items-center justify-center gap-2">
           <button
             type="button"
@@ -173,7 +167,7 @@ export default function MakersPage() {
           <span className="text-sm font-semibold text-ink-600">صفحه {page}</span>
           <button
             type="button"
-            disabled={makers.length < 50}
+            disabled={makers.length < 6}
             onClick={() => setPage((p) => p + 1)}
             className="rounded-lg border border-ink-200 px-4 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40"
           >

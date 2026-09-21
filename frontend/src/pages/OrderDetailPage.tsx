@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
 interface OrderItem {
   logicalPartId: string
   logicalPartName: string
-  sku: string
-  supplierName: string
+  sku: string | null
+  supplierName: string | null
   quantity: number
-  unitPrice: number
-  lineTotal: number
+  unitPrice: number | null
+  lineTotal: number | null
   url: string | null
 }
 
@@ -62,12 +61,9 @@ export default function OrderDetailPage() {
     if (!id) return
     setLoading(true)
     setError(null)
-    fetch(`${BASE}/orders/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`خطای سرور (${res.status})`)
-        return res.json()
-      })
-      .then((data: OrderDetail) => setOrder(data))
+    api
+      .getOrder(Number(id))
+      .then((data) => setOrder(data as unknown as OrderDetail))
       .catch((e) => setError(e instanceof Error ? e.message : 'خطا در بارگذاری'))
       .finally(() => setLoading(false))
   }, [id])
@@ -98,9 +94,14 @@ export default function OrderDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <Link to="/orders" className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
-        ← سفارشات من
-      </Link>
+      {/* Breadcrumb */}
+      <nav className="mb-6 flex items-center gap-2 text-xs text-ink-400">
+        <Link to="/" className="hover:text-brand-600 transition-colors">خانه</Link>
+        <span>/</span>
+        <Link to="/orders" className="hover:text-brand-600 transition-colors">سفارشات</Link>
+        <span>/</span>
+        <span className="text-ink-600">سفارش #{order.id}</span>
+      </nav>
 
       {/* Header */}
       <div className="card animate-fadeInUp p-6">

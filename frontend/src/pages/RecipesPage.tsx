@@ -11,15 +11,19 @@ const categories = [
   { value: 'testing', label: 'تست', icon: '🔬' },
 ]
 
+const PAGE_SIZE = 12
+
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [category, setCategory] = useState<string>('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350)
+    const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1) }, 350)
     return () => clearTimeout(t)
   }, [search])
 
@@ -29,7 +33,10 @@ export default function RecipesPage() {
     api
       .listRecipes({ status: 'Approved', category: category || undefined, search: debouncedSearch || undefined })
       .then((r) => {
-        if (alive) setRecipes(r.items)
+        if (alive) {
+          setTotal(r.total ?? r.items.length)
+          setRecipes(r.items)
+        }
       })
       .catch((e: unknown) => {
         if (alive) {
@@ -37,10 +44,12 @@ export default function RecipesPage() {
           setRecipes([])
         }
       })
-    return () => {
-      alive = false
-    }
+    return () => { alive = false }
   }, [category, debouncedSearch])
+
+  // Client-side pagination
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const paginatedRecipes = recipes?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -61,12 +70,12 @@ export default function RecipesPage() {
           placeholder="جستجو در دستورها…"
           className="input sm:max-w-xs"
         />
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {categories.map((cat) => (
             <button
               key={cat.value}
               type="button"
-              onClick={() => setCategory(cat.value)}
+              onClick={() => { setCategory(cat.value); setPage(1) }}
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
                 category === cat.value
                   ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/30'
@@ -88,7 +97,7 @@ export default function RecipesPage() {
 
       {!recipes && !error && (
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="card h-52 animate-pulse bg-ink-100" />
           ))}
         </div>
@@ -106,9 +115,9 @@ export default function RecipesPage() {
         </div>
       )}
 
-      {recipes && recipes.length > 0 && (
+      {paginatedRecipes && paginatedRecipes.length > 0 && (
         <div className="stagger mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {recipes.map((r) => (
+          {paginatedRecipes.map((r) => (
             <div key={r.id} className="animate-fadeInUp">
               <RecipeCard recipe={r} />
             </div>
@@ -116,9 +125,56 @@ export default function RecipesPage() {
         </div>
       )}
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="btn-outline px-4 py-1.5 text-xs disabled:opacity-40"
+          >
+            ← قبلی
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+            .reduce<(number | '...')[]>((acc, p, i, arr) => {
+              if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...')
+              acc.push(p)
+              return acc
+            }, [])
+            .map((p, i) =>
+              p === '...' ? (
+                <span key={`ellipsis-${i}`} className="text-ink-400">…</span>
+              ) : (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPage(p)}
+                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-colors ${
+                    page === p
+                      ? 'bg-brand-600 text-white'
+                      : 'border border-ink-200 text-ink-600 hover:bg-ink-50'
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+          <button
+            type="button"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            className="btn-outline px-4 py-1.5 text-xs disabled:opacity-40"
+          >
+            بعدی →
+          </button>
+        </div>
+      )}
+
       {recipes && recipes.length > 0 && (
         <p className="mt-6 text-center text-xs text-ink-400">
-          {recipes.length} دستور تأییدشده
+          {total} دستور تأییدشده
         </p>
       )}
     </div>

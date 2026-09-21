@@ -26,9 +26,22 @@ services:
         condition: service_healthy
     environment:
       ConnectionStrings__BesazDb: "Host=db;Port=5432;Database=besaz;Username=besaz;Password=besaz_dev;"
+      Database__Provider: "Postgres"
       ASPNETCORE_ENVIRONMENT: Development
     ports:
       - "5090:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: besaz-frontend
+    depends_on:
+      - api
+    environment:
+      VITE_API_TARGET: "http://api:8080"
+    ports:
+      - "3000:80"
 
 volumes:
   besaz_pgdata:

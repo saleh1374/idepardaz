@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+import { api } from '../lib/api'
 
 interface AuditItem {
   id: number
@@ -20,8 +19,6 @@ const actionBadge = (a: string) => {
   return 'bg-gray-100 text-gray-700'
 }
 
-const formatDate = (d: string) => new Date(d).toLocaleString('fa-IR')
-
 export default function AdminAuditPage() {
   const [logs, setLogs] = useState<AuditItem[]>([])
   const [total, setTotal] = useState(0)
@@ -32,10 +29,10 @@ export default function AdminAuditPage() {
   const load = (p: number) => {
     setLoading(true)
     setError(null)
-    fetch(`${BASE}/admin/audit?page=${p}`)
-      .then(r => { if (!r.ok) throw new Error('خطا'); return r.json() })
-      .then(d => { setLogs(d.items); setTotal(d.total) })
-      .catch(e => setError(e.message))
+    api
+      .adminAuditLog(p)
+      .then((d) => { setLogs(d.items); setTotal(d.total) })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'خطا'))
       .finally(() => setLoading(false))
   }
 
@@ -68,7 +65,9 @@ export default function AdminAuditPage() {
             <tbody className="divide-y divide-ink-50">
               {logs.map(l => (
                 <tr key={l.id} className="hover:bg-ink-50/50">
-                  <td className="whitespace-nowrap px-5 py-3 text-xs text-ink-500" dir="ltr">{formatDate(l.timestamp)}</td>
+                  <td className="whitespace-nowrap px-5 py-3 text-xs text-ink-500" dir="ltr">
+                    {new Date(l.timestamp).toLocaleString('fa-IR')}
+                  </td>
                   <td className="px-5 py-3">
                     <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-600">{l.entityType}</span>
                   </td>

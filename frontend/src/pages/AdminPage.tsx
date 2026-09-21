@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+import { api } from '../lib/api'
 
 interface DashboardStats {
   recipes: number
@@ -50,19 +49,16 @@ const statusBadge = (s: string) => {
   return map[s] ?? 'bg-gray-100 text-gray-700'
 }
 
-const formatPrice = (n: number) => new Intl.NumberFormat('fa-IR').format(n) + ' تومان'
-const formatDate = (d: string) => new Date(d).toLocaleDateString('fa-IR')
-
 export default function AdminPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${BASE}/admin/dashboard`)
-      .then(r => { if (!r.ok) throw new Error('خطا در بارگذاری'); return r.json() })
-      .then(setData)
-      .catch(e => setError(e.message))
+    api
+      .adminDashboard()
+      .then(setData as never)
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'خطا در بارگذاری'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -87,10 +83,10 @@ export default function AdminPage() {
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Link to="/admin/users" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50">👥 مدیریت کاربران</Link>
-        <Link to="/admin/recipes" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50">📋 مدیریت دستورها</Link>
-        <Link to="/admin/orders" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50">📦 مدیریت سفارشات</Link>
-        <Link to="/admin/audit" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50">📝 گزارش عملیات</Link>
+        <Link to="/admin/users" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">👥 مدیریت کاربران</Link>
+        <Link to="/admin/recipes" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">📋 مدیریت دستورها</Link>
+        <Link to="/admin/orders" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">📦 مدیریت سفارشات</Link>
+        <Link to="/admin/audit" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">📝 گزارش عملیات</Link>
       </div>
 
       {/* Recent Projects */}
@@ -116,7 +112,7 @@ export default function AdminPage() {
                   <td className="px-5 py-3">
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${statusBadge(p.status)}`}>{p.status}</span>
                   </td>
-                  <td className="px-5 py-3 text-xs text-ink-500">{formatDate(p.createdAt)}</td>
+                  <td className="px-5 py-3 text-xs text-ink-500">{new Date(p.createdAt).toLocaleDateString('fa-IR')}</td>
                 </tr>
               ))}
               {data.recentProjects.length === 0 && (
@@ -149,8 +145,8 @@ export default function AdminPage() {
                   <td className="px-5 py-3">
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${statusBadge(o.status)}`}>{o.status}</span>
                   </td>
-                  <td className="px-5 py-3 font-semibold text-ink-800">{formatPrice(o.total)}</td>
-                  <td className="px-5 py-3 text-xs text-ink-500">{formatDate(o.createdAt)}</td>
+                  <td className="px-5 py-3 font-semibold text-ink-800">{new Intl.NumberFormat('fa-IR').format(o.total)} تومان</td>
+                  <td className="px-5 py-3 text-xs text-ink-500">{new Date(o.createdAt).toLocaleDateString('fa-IR')}</td>
                 </tr>
               ))}
               {data.recentOrders.length === 0 && (

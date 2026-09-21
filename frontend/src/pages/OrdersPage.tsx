@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
-
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
 interface OrderSummary {
   id: number
   projectId: number
   status: string
   total: number
-  recipientName: string
+  recipientName: string | null
   itemCount: number
   createdAt: string
 }
@@ -52,14 +51,9 @@ export default function OrdersPage() {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    const q = new URLSearchParams({ page: String(page) })
-    if (status) q.set('status', status)
-    fetch(`${BASE}/orders?${q}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`خطای سرور (${res.status})`)
-        return res.json()
-      })
-      .then((data: { items: OrderSummary[] }) => setOrders(data.items ?? []))
+    api
+      .listOrders({ status: status || undefined, page })
+      .then((data) => setOrders(data.items ?? []))
       .catch((e) => setError(e instanceof Error ? e.message : 'خطا در بارگذاری'))
       .finally(() => setLoading(false))
   }, [status, page])
