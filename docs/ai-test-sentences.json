@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "description": "جملات تست AI برای StubMatcher — ۲۰ جملهٔ واقعی فارسی",
+  "sentences": [
+    {
+      "id": 1,
+      "text": "می‌خواهم یک چراغ مطالعه بسازم",
+      "expectedRecipeId": "RLED-001",
+      "expectedIntent": "recipe_selected",
+      "category": "lighting"
+    },
+    {
+      "id": 2,
+      "text": "یک چراغ LED USB می‌خواهم",
+      "expectedRecipeId": "RLED-001",
+      "expectedIntent": "recipe_selected",
+      "category": "lighting"
+    },
+    {
+      "id": 3,
+      "text": "چطور یک چراغ ساده بسازم؟",
+      "expectedRecipeId": "RLED-001",
+      "expectedIntent": "recipe_selected",
+      "category": "lighting"
+    },
+    {
+      "id": 4,
+      "text": "یک فن خنک‌کننده لپ‌تاپ می‌خواهم",
+      "expectedRecipeId": "UFAN-001",
+      "expectedIntent": "recipe_selected",
+      "category": "cooling"
+    },
+    {
+      "id": 5,
+      "text": "فن USB برای کیس کامپیوتر",
+      "expectedRecipeId": "UFAN-001",
+      "expectedIntent": "recipe_selected",
+      "category": "cooling"
+    },
+    {
+      "id": 6,
+      "text": "می‌خوام یک فن بسازم",
+      "expectedRecipeId": "UFAN-001",
+      "expectedIntent": "recipe_selected",
+      "category": "cooling"
+    },
+    {
+      "id": 7,
+      "text": "تستر باتری ساده می‌خواهم",
+      "expectedRecipeId": "BTEST-001",
+      "expectedIntent": "recipe_selected",
+      "category": "testing"
+    },
+    {
+      "id": 8,
+      "text": "چطور باتری را تست کنم؟",
+      "expectedRecipeId": "BTEST-001",
+      "expectedIntent": "recipe_selected",
+      "category": "testing"
+    },
+    {
+      "id": 9,
+      "text": "یک مدار تست باتری",
+      "expectedRecipeId": "BTEST-001",
+      "expectedIntent": "recipe_selected",
+      "category": "testing"
+    },
+    {
+      "id": 10,
+      "text": "چراغ اضطراری برای قطعی برق",
+      "expectedRecipeId": "ELIGHT-001",
+      "expectedIntent": "recipe_selected",
+      "category": "lighting"
+    },
+    {
+      "id": 11,
+      "text": "چراغ قابل شارژ اضطراری",
+      "expectedRecipeId": "ELIGHT-001",
+      "expectedIntent": "recipe_selected",
+      "category": "lighting"
+    },
+    {
+      "id": 12,
+      "text": "یک چراغ اضطراری ساده",
+      "expectedRecipeId": "ELIGHT-001",
+      "expectedIntent": "recipe_selected",
+      "category": "lighting"
+    },
+    {
+      "id": 13,
+      "text": "پاوربانک خودم بسازم",
+      "expectedRecipeId": "PB-001",
+      "expectedIntent": "recipe_selected",
+      "category": "power",
+      "hasWarning": true
+    },
+    {
+      "id": 14,
+      "text": "باتری لیتیومی ۱۸۶۵۰",
+      "expectedRecipeId": "PB-001",
+      "expectedIntent": "recipe_selected",
+      "category": "power",
+      "hasWarning": true
+    },
+    {
+      "id": 15,
+      "text": "مدار برق شهر ۲۲۰ ولت",
+      "expectedRecipeId": null,
+      "expectedIntent": "no_recipe",
+      "category": "other",
+      "hasWarning": true,
+      "warningType": "municipal_power"
+    },
+    {
+      "id": 16,
+      "text": "یک ربات ساده بسازم",
+      "expectedRecipeId": null,
+      "expectedIntent": "no_recipe",
+      "category": "robot"
+    },
+    {
+      "id": 17,
+      "text": "می‌خواهم گیتار بسازم",
+      "expectedRecipeId": null,
+      "expectedIntent": "no_recipe",
+      "category": "other"
+    },
+    {
+      "id": 18,
+      "text": "یک قاب موبایل چاپ سه‌بعدی",
+      "expectedRecipeId": null,
+      "expectedIntent": "no_recipe",
+      "category": "other"
+    },
+    {
+      "id": 19,
+      "text": "مدار اینورتر خورشیدی",
+      "expectedRecipeId": null,
+      "expectedIntent": "no_recipe",
+      "category": "power"
+    },
+    {
+      "id": 20,
+      "text": "آموزش لحیم‌کاری",
+      "expectedRecipeId": null,
+      "expectedIntent": "no_recipe",
+      "category": "tool"
+    }
+  ]
+}

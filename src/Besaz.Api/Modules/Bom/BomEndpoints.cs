@@ -92,6 +92,10 @@ public static class BomEndpoints
     {
         var (userId, userName) = UserContext.Resolve(http);
 
+        // فقط کاربران لاگین‌شده می‌توانند پروژه بسازند
+        if (userId == WellKnownUsers.Guest)
+            return Results.Unauthorized();
+
         var recipe = await db.Recipes
             .Include(r => r.Versions)
             .FirstOrDefaultAsync(r => r.Id == req.RecipeId);
@@ -168,13 +172,30 @@ public static class BomEndpoints
         IQueryable<Project> q = db.Projects.AsNoTracking();
         if (userId.HasValue) q = q.Where(p => p.UserId == userId.Value);
         var all = (await q.ToListAsync()).OrderByDescending(p => p.CreatedAt).ToList();
+
+        // دریافت اطلاعات سفارش برای هر پروژه
+        var projectIds = all.Select(p => p.Id).ToList();
+        var orders = await db.Orders
+            .AsNoTracking()
+            .Where(o => projectIds.Contains(o.ProjectId))
+            .Select(o => new { o.ProjectId, o.Id, o.Status, o.Total, o.CreatedAt })
+            .ToListAsync();
+        var ordersByProject = orders.GroupBy(o => o.ProjectId).ToDictionary(g => g.Key, g => g.First());
+
         var rows = all
             .Skip((Math.Max(1, page) - 1) * pageSize).Take(Math.Clamp(pageSize, 1, 200))
-            .Select(p => new
+            .Select(p =>
             {
-                id = p.Id, title = p.Title, recipeId = p.RecipeId,
-                recipeVersion = p.RecipeVersionText, status = p.Status.ToString(),
-                bomId = p.BomId, createdAt = p.CreatedAt,
+                ordersByProject.TryGetValue(p.Id, out var order);
+                return new
+                {
+                    id = p.Id, title = p.Title, recipeId = p.RecipeId,
+                    recipeVersion = p.RecipeVersionText, status = p.Status.ToString(),
+                    bomId = p.BomId, createdAt = p.CreatedAt,
+                    orderId = order?.Id,
+                    orderStatus = order?.Status,
+                    orderTotal = order?.Total,
+                };
             })
             .ToList();
         return Results.Ok(new { page, pageSize, total = all.Count, items = rows });

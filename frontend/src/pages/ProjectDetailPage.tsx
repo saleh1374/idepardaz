@@ -304,9 +304,17 @@ export default function ProjectDetailPage() {
               <p className="text-xs font-semibold text-brand-700">جمع کل</p>
               <p className="text-2xl font-extrabold text-brand-800">{formatPrice(bom.total)}</p>
             </div>
-            <Link to={`/recipes/${encodeURIComponent(project.recipeId)}`} className="btn-primary text-xs">
-              🔧 مشاهدهٔ دستور
-            </Link>
+            <div className="flex gap-2">
+              <Link to={`/recipes/${encodeURIComponent(project.recipeId)}`} className="btn-outline text-xs">
+                🔧 مشاهدهٔ دستور
+              </Link>
+              <Link
+                to={`/projects/${project.id}/buy`}
+                className="btn-primary text-xs"
+              >
+                🛒 خرید قطعات
+              </Link>
+            </div>
           </div>
         </div>
       )}

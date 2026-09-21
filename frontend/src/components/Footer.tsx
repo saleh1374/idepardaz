@@ -69,6 +69,10 @@ export default function Footer() {
       </div>
       <div className="border-t border-ink-800 py-5 text-center text-xs text-ink-500">
         MVP بساز — Modular Monolith (ASP.NET Core) + React — نسخهٔ پیش‌آزمایشی
+        <span className="mx-2">·</span>
+        <Link to="/terms" className="text-ink-400 transition-colors hover:text-white">
+          شرایط استفاده
+        </Link>
       </div>
     </footer>
   )

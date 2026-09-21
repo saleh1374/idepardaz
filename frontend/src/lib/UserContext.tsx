@@ -30,11 +30,23 @@ const UserContext = createContext<UserContextType>({
   hasRole: () => false,
 })
 
+/** بررسی معتبر بودن GUID */
+function isValidGuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<User>(() => {
     try {
       const stored = localStorage.getItem('besaz-user')
-      if (stored) return JSON.parse(stored) as User
+      if (stored) {
+        const parsed = JSON.parse(stored) as User
+        // مigrate: اگر ID کاربر GUID معتبر نیست، یکی جدید بساز
+        if (parsed.role !== 'Guest' && !isValidGuid(parsed.id)) {
+          parsed.id = crypto.randomUUID()
+        }
+        return parsed
+      }
     } catch { /* fallthrough */ }
     return DEFAULT_USER
   })

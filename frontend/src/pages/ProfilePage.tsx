@@ -78,9 +78,9 @@ export default function ProfilePage() {
     ],
     Member: [
       { to: '/recipes', label: 'دستورها', icon: '📋' },
-      { to: '/parts', label: 'قطعات', icon: '🧩' },
       { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
-      { to: '/orders', label: 'سفارشات', icon: '📦' },
+      { to: '/makers', label: 'صنعتگران', icon: '🏭' },
+      { to: '/wizard', label: 'ویزارد', icon: '✨' },
     ],
     Engineer: [
       { to: '/recipes', label: 'دستورها', icon: '📋' },

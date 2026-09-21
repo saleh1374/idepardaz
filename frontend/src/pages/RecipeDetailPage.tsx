@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { api } from '../lib/api'
+import { api, ApiError } from '../lib/api'
 import type { RecipeDetail } from '../lib/types'
 import { difficultyLabel, formatTime, safetyLabel } from '../lib/format'
 import Badge, { type Tone } from '../components/Badge'
@@ -47,9 +47,12 @@ export default function RecipeDetailPage() {
   const [activeTab, setActiveTab] = useState<'build' | 'details'>('build')
   const [orderMode, setOrderMode] = useState<'none' | 'diy' | 'maker'>('none')
   const [selectedMaker, setSelectedMaker] = useState<string | null>(null)
-  const [makers, setMakers] = useState<Array<{ id: string; displayName: string; city: string; rating: number; specialties: string }>>([])
+  const [makers, setMakers] = useState<Array<{ id: string; displayName: string; city: string; rating: number; specialties: string; laborCost: number }>>([])
   const [orderSubmitting, setOrderSubmitting] = useState(false)
   const [orderResult, setOrderResult] = useState<string | null>(null)
+  const [bomTotal, setBomTotal] = useState<number | null>(null)
+  const [projectCreated, setProjectCreated] = useState<boolean>(false)
+  const [selectedMakerServices, setSelectedMakerServices] = useState<Array<{ id: number; title: string; price: number; unit: string }>>([])
 
   useEffect(() => {
     if (!id) return
@@ -79,27 +82,41 @@ export default function RecipeDetailPage() {
         city: m.city,
         rating: m.rating,
         specialties: m.specialties,
+        laborCost: m.serviceCount > 0 ? 0 : 0, // default
       })))
     }).catch(() => {})
   }, [])
 
+  // بارگذاری خدمات صنعتگر انتخاب‌شده
+  useEffect(() => {
+    if (!selectedMaker) { setSelectedMakerServices([]); return }
+    api.listMakerServices(selectedMaker).then(d => {
+      setSelectedMakerServices(d.items ?? [])
+    }).catch(() => setSelectedMakerServices([]))
+  }, [selectedMaker])
+
   // ثبت سفارش DIY
   const submitDIYOrder = async () => {
-    if (!id || !hasRole('Member', 'Guest')) {
-      navigate('/profile')
+    if (!id || projectCreated) return
+    if (!hasRole('Member')) {
+      navigate('/login')
       return
     }
     setOrderSubmitting(true)
     setOrderResult(null)
     try {
-      // ایجاد پروژه
       const project = await api.createProject({
         recipeId: id,
         title: detail?.title ?? 'پروژه جدید',
         parametersJson: JSON.stringify(params),
       })
+      setProjectCreated(true)
       setOrderResult(`✅ پروژه شما ایجاد شد! شماره پروژه: ${project.project.id}. حالا قطعات را تهیه کنید و بسازید.`)
     } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        navigate('/login')
+        return
+      }
       setOrderResult(e instanceof Error ? e.message : 'خطا در ثبت')
     } finally {
       setOrderSubmitting(false)
@@ -108,8 +125,9 @@ export default function RecipeDetailPage() {
 
   // ثبت سفارش صنعتگر
   const submitMakerOrder = async () => {
-    if (!id || !selectedMaker || !hasRole('Member', 'Guest')) {
-      navigate('/profile')
+    if (!id || !selectedMaker || projectCreated) return
+    if (!hasRole('Member')) {
+      navigate('/login')
       return
     }
     setOrderSubmitting(true)
@@ -121,8 +139,13 @@ export default function RecipeDetailPage() {
         parametersJson: JSON.stringify(params),
         makerId: selectedMaker,
       })
+      setProjectCreated(true)
       setOrderResult(`✅ سفارش ثبت شد! شماره پروژه: ${project.project.id}. صنعتگر قطعات را تهیه کرده و می‌سازد.`)
     } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        navigate('/login')
+        return
+      }
       setOrderResult(e instanceof Error ? e.message : 'خطا در ثبت')
     } finally {
       setOrderSubmitting(false)
@@ -241,7 +264,7 @@ export default function RecipeDetailPage() {
                   </div>
                   <div className="card p-6 lg:col-span-3">
                     <h3 className="mb-4 text-sm font-extrabold text-ink-800">لیست قطعات و قیمت</h3>
-                    <BomPanel recipeId={detail.id} parameters={params} title={detail.title} />
+                    <BomPanel recipeId={detail.id} parameters={params} title={detail.title} onBomGenerated={setBomTotal} />
                   </div>
                 </div>
               </section>
@@ -284,6 +307,109 @@ export default function RecipeDetailPage() {
                   دو راه دارید: خودتان قطعات را بخرید و بسازید، یا به صنعتگران ما بسپارید.
                 </p>
 
+                {/* پیام ورود برای مهمانان */}
+                {!hasRole('Member', 'Maker', 'Supplier', 'Admin') && (
+                  <div className="mt-4 rounded-xl border border-brand-200 bg-white p-5 text-center">
+                    <span className="text-3xl">🔐</span>
+                    <p className="mt-2 text-sm font-bold text-ink-800">برای ثبت پروژه وارد شوید</p>
+                    <p className="mt-1 text-xs text-ink-500">ابتدا ثبت‌نام کنید یا وارد حساب خود شوید تا بتوانید پروژه ایجاد کنید.</p>
+                    <div className="mt-3 flex justify-center gap-2">
+                      <Link to="/login" className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-bold text-white hover:bg-brand-600">
+                        🔐 ورود
+                      </Link>
+                      <Link to="/register" className="rounded-lg border border-ink-200 bg-white px-5 py-2 text-xs font-bold text-ink-700 hover:bg-ink-50">
+                        ثبت‌نام
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* کارت‌های سفارش فقط برای کاربران لاگین‌شده */}
+                {hasRole('Member', 'Maker', 'Supplier', 'Admin') && (
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    {/* DIY */}
+                    <div
+                      className={`cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                        orderMode === 'diy'
+                          ? 'border-brand-500 bg-white shadow-md'
+                          : 'border-ink-200 bg-white hover:border-brand-300 hover:shadow-sm'
+                      }`}
+                      onClick={() => setOrderMode('diy')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">🔨</span>
+                        <div>
+                          <h3 className="text-base font-bold text-ink-900">خودم می‌سازم (DIY)</h3>
+                          <p className="text-xs text-ink-500">قطعات را می‌خرم و با دستور می‌سازم</p>
+                        </div>
+                      </div>
+                      <ul className="mt-4 space-y-2 text-xs text-ink-600">
+                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قیمت فقط قطعات</li>
+                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> آموزش گام‌به‌گام</li>
+                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> بدون هزینه دستمزد</li>
+                      </ul>
+                      {orderMode === 'diy' && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); submitDIYOrder() }}
+                          disabled={orderSubmitting || projectCreated}
+                          className="mt-4 w-full rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
+                        >
+                          {projectCreated ? '✅ ثبت شده' : orderSubmitting ? 'در حال ثبت...' : '🔨 شروع ساخت'}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Maker */}
+                    <div
+                      className={`cursor-pointer rounded-xl border-2 p-5 transition-all ${
+                        orderMode === 'maker'
+                          ? 'border-teal-500 bg-white shadow-md'
+                          : 'border-ink-200 bg-white hover:border-teal-300 hover:shadow-sm'
+                      }`}
+                      onClick={() => setOrderMode('maker')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">🏭</span>
+                        <div>
+                          <h3 className="text-base font-bold text-ink-900">صنعتگر بسازد</h3>
+                          <p className="text-xs text-ink-500">قطعات و ساخت را به صنعتگر بسپارید</p>
+                        </div>
+                      </div>
+                      <ul className="mt-4 space-y-2 text-xs text-ink-600">
+                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قطعات + دستمزد + ارسال</li>
+                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> تحویل آماده</li>
+                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> ضمانت کیفیت</li>
+                      </ul>
+                      {orderMode === 'maker' && (
+                        <div className="mt-4 space-y-3">
+                          <div>
+                            <label className="mb-1 block text-xs font-semibold text-ink-700">صنعتگر را انتخاب کنید:</label>
+                            <select
+                              value={selectedMaker ?? ''}
+                              onChange={e => setSelectedMaker(e.target.value || null)}
+                              className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+                            >
+                              <option value="">انتخاب صنعتگر...</option>
+                              {makers.map(m => (
+                                <option key={m.id} value={m.id}>{m.displayName} ({m.city}) — ⭐ {m.rating.toFixed(1)}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); submitMakerOrder() }}
+                            disabled={orderSubmitting || !selectedMaker || projectCreated}
+                            className="w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50"
+                          >
+                            {projectCreated ? '✅ ثبت شده' : orderSubmitting ? 'در حال ثبت...' : '🏭 ثبت سفارش'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {orderResult && (
                   <div className={`mt-4 rounded-xl p-4 text-sm font-medium ${
                     orderResult.includes('✅')
@@ -294,100 +420,90 @@ export default function RecipeDetailPage() {
                   </div>
                 )}
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {/* DIY */}
-                  <div
-                    className={`cursor-pointer rounded-xl border-2 p-5 transition-all ${
-                      orderMode === 'diy'
-                        ? 'border-brand-500 bg-white shadow-md'
-                        : 'border-ink-200 bg-white hover:border-brand-300 hover:shadow-sm'
-                    }`}
-                    onClick={() => setOrderMode('diy')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">🔨</span>
-                      <div>
-                        <h3 className="text-base font-bold text-ink-900">خودم می‌سازم (DIY)</h3>
-                        <p className="text-xs text-ink-500">قطعات را می‌خرم و با دستور می‌سازم</p>
-                      </div>
-                    </div>
-                    <ul className="mt-4 space-y-2 text-xs text-ink-600">
-                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قیمت فقط قطعات</li>
-                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> آموزش گام‌به‌گام</li>
-                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> بدون هزینه دستمزد</li>
-                    </ul>
-                    {orderMode === 'diy' && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); submitDIYOrder() }}
-                        disabled={orderSubmitting}
-                        className="mt-4 w-full rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
-                      >
-                        {orderSubmitting ? 'در حال ثبت...' : '🔨 شروع ساخت'}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Maker */}
-                  <div
-                    className={`cursor-pointer rounded-xl border-2 p-5 transition-all ${
-                      orderMode === 'maker'
-                        ? 'border-teal-500 bg-white shadow-md'
-                        : 'border-ink-200 bg-white hover:border-teal-300 hover:shadow-sm'
-                    }`}
-                    onClick={() => setOrderMode('maker')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">🏭</span>
-                      <div>
-                        <h3 className="text-base font-bold text-ink-900">صنعتگر بسازد</h3>
-                        <p className="text-xs text-ink-500">قطعات و ساخت را به صنعتگر بسپارید</p>
-                      </div>
-                    </div>
-                    <ul className="mt-4 space-y-2 text-xs text-ink-600">
-                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قطعات + دستمزد + ارسال</li>
-                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> تحویل آماده</li>
-                      <li className="flex items-center gap-2"><span className="text-green-500">✓</span> ضمانت کیفیت</li>
-                    </ul>
-                    {orderMode === 'maker' && (
-                      <div className="mt-4 space-y-3">
-                        <div>
-                          <label className="mb-1 block text-xs font-semibold text-ink-700">صنعتگر را انتخاب کنید:</label>
-                          <select
-                            value={selectedMaker ?? ''}
-                            onChange={e => setSelectedMaker(e.target.value || null)}
-                            className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
-                          >
-                            <option value="">انتخاب صنعتگر...</option>
-                            {makers.map(m => (
-                              <option key={m.id} value={m.id}>{m.displayName} ({m.city}) — ⭐ {m.rating.toFixed(1)}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); submitMakerOrder() }}
-                          disabled={orderSubmitting || !selectedMaker}
-                          className="w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50"
-                        >
-                          {orderSubmitting ? 'در حال ثبت...' : '🏭 ثبت سفارش'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 {/* قیمت تخمینی */}
                 {orderMode === 'maker' && (
                   <div className="mt-4 rounded-xl bg-white p-4 text-sm">
                     <h4 className="font-bold text-ink-800">💰 تخمین قیمت نهایی</h4>
                     <div className="mt-2 space-y-1 text-ink-600">
-                      <div className="flex justify-between"><span>قطعات (تخمینی)</span><span className="font-semibold">— تومان</span></div>
-                      <div className="flex justify-between"><span>دستمزد صنعتگر</span><span className="font-semibold">— تومان</span></div>
-                      <div className="flex justify-between"><span>هزینه ارسال</span><span className="font-semibold">— تومان</span></div>
-                      <div className="border-t border-ink-200 pt-2 font-bold text-brand-700">
-                        <div className="flex justify-between"><span>جمع کل</span><span>پس از BOM مشخص می‌شود</span></div>
+                      <div className="flex justify-between">
+                        <span>قطعات (BOM)</span>
+                        <span className="font-semibold">{bomTotal != null ? new Intl.NumberFormat('fa-IR').format(bomTotal) + ' تومان' : '— محاسبه نشده'}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span>دستمزد صنعتگر</span>
+                        <span className="font-semibold">
+                          {selectedMakerServices.length > 0
+                            ? new Intl.NumberFormat('fa-IR').format(Math.min(...selectedMakerServices.map(s => s.price))) + ' تومان'
+                            : '— طبق نقل‌قول'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>هزینه ارسال</span>
+                        <span className="font-semibold">— طبق اعلام</span>
+                      </div>
+                      <div className="border-t border-ink-200 pt-2 font-bold text-brand-700">
+                        <div className="flex justify-between">
+                          <span>جمع کل تخمینی</span>
+                          <span>
+                            {bomTotal != null
+                              ? new Intl.NumberFormat('fa-IR').format(bomTotal + (selectedMakerServices.length > 0 ? Math.min(...selectedMakerServices.map(s => s.price)) : 0)) + ' تومان'
+                              : 'پس از BOM مشخص می‌شود'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* قیمت DIY */}
+                {orderMode === 'diy' && (
+                  <div className="mt-4 rounded-xl bg-white p-4 text-sm">
+                    <h4 className="font-bold text-ink-800">💰 هزینه DIY</h4>
+                    <div className="mt-2 space-y-1 text-ink-600">
+                      <div className="flex justify-between">
+                        <span>قطعات (BOM)</span>
+                        <span className="font-semibold">{bomTotal != null ? new Intl.NumberFormat('fa-IR').format(bomTotal) + ' تومان' : '— محاسبه نشده'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>هزینه ارسال</span>
+                        <span className="font-semibold">— بسته به فروشگاه</span>
+                      </div>
+                      <div className="border-t border-ink-200 pt-2 font-bold text-brand-700">
+                        <div className="flex justify-between">
+                          <span>جمع کل</span>
+                          <span>
+                            {bomTotal != null
+                              ? new Intl.NumberFormat('fa-IR').format(bomTotal) + ' تومان'
+                              : 'پس از BOM مشخص می‌شود'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* مرحله پرداخت */}
+                {projectCreated && (
+                  <div className="mt-4 rounded-xl border-2 border-green-200 bg-green-50 p-5">
+                    <h4 className="flex items-center gap-2 text-base font-bold text-green-800">
+                      <span className="text-xl">💳</span> مرحلهٔ پرداخت
+                    </h4>
+                    <p className="mt-2 text-sm text-green-700">
+                      پروژهٔ شما ثبت شد. برای نهایی‌سازی سفارش، لطفاً هزینه را پرداخت کنید.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        to={`/projects`}
+                        className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-700"
+                      >
+                        💳 پرداخت و مشاهده پروژه
+                      </Link>
+                      <Link
+                        to="/"
+                        className="rounded-lg border border-green-300 bg-white px-5 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50"
+                      >
+                        🏠 بازگشت به خانه
+                      </Link>
                     </div>
                   </div>
                 )}

@@ -24,16 +24,20 @@ export default function BomPanel({
   recipeId,
   parameters,
   title,
+  onBomGenerated,
 }: {
   recipeId: string
   parameters: ParamValues
   title: string
+  onBomGenerated?: (total: number | null) => void
 }) {
   const [bom, setBom] = useState<BomResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [projectMsg, setProjectMsg] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [projectCreated, setProjectCreated] = useState(false)
+  const [createdProjectId, setCreatedProjectId] = useState<number | null>(null)
 
   const generate = async () => {
     setLoading(true)
@@ -42,7 +46,9 @@ export default function BomPanel({
     try {
       const result = await api.generateBom({ recipeId, parameters })
       setBom(result)
+      onBomGenerated?.(result.total)
     } catch (e) {
+      onBomGenerated?.(null)
       if (e instanceof ApiError) {
         setBom({ isValid: false, errors: e.errors ?? [e.message], warnings: [], bomId: null, total: null, recipeTitle: '', recipeVersion: '', items: [] })
         setError(e.message)
@@ -55,11 +61,13 @@ export default function BomPanel({
   }
 
   const createProject = async () => {
-    if (!bom?.isValid) return
+    if (!bom?.isValid || projectCreated) return
     setSaving(true)
     setError(null)
     try {
       const res = await api.createProject({ title, recipeId, parameters })
+      setProjectCreated(true)
+      setCreatedProjectId(res.project.id)
       setProjectMsg(
         `پروژهٔ «${res.project.title}» ساخته شد — وضعیت: ${res.project.status} — شناسهٔ پروژه: ${res.project.id}`,
       )
@@ -172,7 +180,7 @@ export default function BomPanel({
                   <button
                     type="button"
                     onClick={createProject}
-                    disabled={saving}
+                    disabled={saving || projectCreated}
                     className="btn-primary text-xs"
                   >
                     {saving ? (
@@ -180,6 +188,8 @@ export default function BomPanel({
                         <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
                         در حال ثبت…
                       </span>
+                    ) : projectCreated ? (
+                      '✅ ثبت شده'
                     ) : (
                       '📝 ثبت به‌عنوان پروژهٔ من'
                     )}
@@ -188,8 +198,24 @@ export default function BomPanel({
               </div>
 
               {projectMsg && (
-                <div className="animate-fadeIn mt-3 rounded-xl border border-brand-300 bg-brand-50 p-4 text-sm font-medium text-brand-800">
-                  ✅ {projectMsg}
+                <div className="animate-fadeIn mt-3 rounded-xl border border-brand-300 bg-brand-50 p-4">
+                  <p className="text-sm font-medium text-brand-800">✅ {projectMsg}</p>
+                  {createdProjectId && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a
+                        href={`/projects/${createdProjectId}/buy`}
+                        className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700 transition-colors"
+                      >
+                        🛒 خرید قطعات
+                      </a>
+                      <a
+                        href={`/projects/${createdProjectId}`}
+                        className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-white px-5 py-2.5 text-sm font-bold text-brand-700 hover:bg-brand-50 transition-colors"
+                      >
+                        📁 مشاهده پروژه
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

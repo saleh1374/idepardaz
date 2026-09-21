@@ -22,10 +22,33 @@ export class ApiError extends Error {
   }
 }
 
+/** خواندن اطلاعات کاربر از localStorage و ارسال هدر احراز هویت */
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const stored = localStorage.getItem('besaz-user')
+    if (stored) {
+      const user = JSON.parse(stored)
+      if (user.id && user.role !== 'Guest') {
+        return {
+          'X-User-Id': user.id,
+          'X-User-Name': user.name || 'کاربر',
+        }
+      }
+    }
+  } catch { /* fallthrough */ }
+  return {}
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const authHeaders = getAuthHeaders()
+  const contentType = init?.body ? { 'Content-Type': 'application/json' } : {}
   const res = await fetch(`${BASE}${path}`, {
-    headers: init?.body ? { 'Content-Type': 'application/json' } : undefined,
     ...init,
+    headers: {
+      ...authHeaders,
+      ...contentType,
+      ...init?.headers,
+    },
   })
 
   if (!res.ok) {
@@ -221,6 +244,25 @@ export const api = {
     }>(`/orders${qs ? `?${qs}` : ''}`)
   },
 
+  /* Auth */
+  register: (body: { name: string; email: string; phone?: string; password: string; role: string }) =>
+    request<{
+      id: string
+      name: string
+      email: string | null
+      phone: string | null
+      role: string
+    }>('/users/register', { method: 'POST', body: JSON.stringify(body) }),
+
+  login: (body: { email: string; password: string }) =>
+    request<{
+      id: string
+      name: string
+      email: string | null
+      phone: string | null
+      role: string
+    }>('/users/login', { method: 'POST', body: JSON.stringify(body) }),
+
   /* Makers */
   listMakers: (params?: { city?: string; specialty?: string; page?: number }) => {
     const q = new URLSearchParams()
@@ -270,6 +312,21 @@ export const api = {
         leadTimeDays: number
       }>
     }>(`/makers/${id}`),
+
+  listMakerServices: (makerId: string) =>
+    request<{
+      page: number
+      pageSize: number
+      total: number
+      items: Array<{
+        id: number
+        title: string
+        description: string | null
+        price: number
+        unit: string
+        leadTimeDays: number
+      }>
+    }>(`/makers/${makerId}/services`),
 
   requestQuote: (body: { makerId: string; projectId?: number; description: string }) =>
     request<{ id: number; makerId: string; status: string; createdAt: string }>(

@@ -2,12 +2,14 @@ import { Route, Routes } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
+import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import RecipesPage from './pages/RecipesPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
 import PartsPage from './pages/PartsPage'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
+import BuyPage from './pages/BuyPage'
 import ProfilePage from './pages/ProfilePage'
 import WizardPage from './pages/WizardPage'
 import MakersPage from './pages/MakersPage'
@@ -26,6 +28,9 @@ import MakerServicesPage from './pages/MakerServicesPage'
 import SupplierDashboardPage from './pages/SupplierDashboardPage'
 import SupplierProductsPage from './pages/SupplierProductsPage'
 import SupplierOrdersPage from './pages/SupplierOrdersPage'
+import TermsPage from './pages/TermsPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -35,7 +40,7 @@ export default function App() {
       <main className="flex-1">
         <ErrorBoundary>
           <Routes>
-            {/* صفحات عمومی */}
+            {/* صفحات عمومی — همه قابل دسترسی */}
             <Route path="/" element={<HomePage />} />
             <Route path="/recipes" element={<RecipesPage />} />
             <Route path="/recipes/:id" element={<RecipeDetailPage />} />
@@ -43,31 +48,111 @@ export default function App() {
             <Route path="/makers" element={<MakersPage />} />
             <Route path="/makers/:id" element={<MakerDetailPage />} />
             <Route path="/wizard" element={<WizardPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
 
-            {/* پروژه‌ها و سفارشات */}
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/orders/:id" element={<OrderDetailPage />} />
+            {/* احراز هویت — نیاز به ورود */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={
+              <ProtectedRoute allowedRoles={['Member', 'Maker', 'Supplier', 'Admin']}>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
 
-            {/* پنل صنعتگر */}
-            <Route path="/maker/dashboard" element={<MakerDashboardPage />} />
-            <Route path="/maker/jobs" element={<MakerJobsPage />} />
-            <Route path="/maker/services" element={<MakerServicesPage />} />
+            {/* پروژه‌ها و سفارشات — فقط کاربران لاگین‌شده */}
+            <Route path="/projects" element={
+              <ProtectedRoute allowedRoles={['Member', 'Maker', 'Supplier', 'Admin']}>
+                <ProjectsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:id" element={
+              <ProtectedRoute allowedRoles={['Member', 'Maker', 'Supplier', 'Admin']}>
+                <ProjectDetailPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/projects/:id/buy" element={
+              <ProtectedRoute allowedRoles={['Member', 'Maker', 'Supplier', 'Admin']}>
+                <BuyPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/orders" element={
+              <ProtectedRoute allowedRoles={['Member', 'Maker', 'Supplier', 'Admin']}>
+                <OrdersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/orders/:id" element={
+              <ProtectedRoute allowedRoles={['Member', 'Maker', 'Supplier', 'Admin']}>
+                <OrderDetailPage />
+              </ProtectedRoute>
+            } />
 
-            {/* پنل تأمین‌کننده */}
-            <Route path="/supplier/dashboard" element={<SupplierDashboardPage />} />
-            <Route path="/supplier/products" element={<SupplierProductsPage />} />
-            <Route path="/supplier/orders" element={<SupplierOrdersPage />} />
+            {/* پنل صنعتگر — فقط صنعتگر */}
+            <Route path="/maker/dashboard" element={
+              <ProtectedRoute allowedRoles={['Maker']}>
+                <MakerDashboardPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/maker/jobs" element={
+              <ProtectedRoute allowedRoles={['Maker']}>
+                <MakerJobsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/maker/services" element={
+              <ProtectedRoute allowedRoles={['Maker']}>
+                <MakerServicesPage />
+              </ProtectedRoute>
+            } />
 
-            {/* پنل مدیریت */}
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/admin/users" element={<AdminUsersPage />} />
-            <Route path="/admin/recipes" element={<AdminRecipesPage />} />
-            <Route path="/admin/orders" element={<AdminOrdersPage />} />
-            <Route path="/admin/suppliers" element={<AdminSuppliersPage />} />
-            <Route path="/admin/audit" element={<AdminAuditPage />} />
+            {/* پنل تأمین‌کننده — فقط تأمین‌کننده */}
+            <Route path="/supplier/dashboard" element={
+              <ProtectedRoute allowedRoles={['Supplier']}>
+                <SupplierDashboardPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/supplier/products" element={
+              <ProtectedRoute allowedRoles={['Supplier']}>
+                <SupplierProductsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/supplier/orders" element={
+              <ProtectedRoute allowedRoles={['Supplier']}>
+                <SupplierOrdersPage />
+              </ProtectedRoute>
+            } />
+
+            {/* صفحات قانونی */}
+            <Route path="/terms" element={<TermsPage />} />
+
+            {/* پنل مدیریت — فقط مدیر */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminUsersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/recipes" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminRecipesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/orders" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminOrdersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/suppliers" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminSuppliersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/audit" element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <AdminAuditPage />
+              </ProtectedRoute>
+            } />
 
             {/* ۴۰۴ */}
             <Route path="*" element={<NotFoundPage />} />

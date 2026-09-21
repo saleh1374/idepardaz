@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { formatPrice } from '../lib/format'
 
 interface Project {
   id: number
@@ -10,6 +11,9 @@ interface Project {
   status: string
   bomId: number | null
   createdAt: string
+  orderId: number | null
+  orderStatus: string | null
+  orderTotal: number | null
 }
 
 const statusLabel: Record<string, string> = {
@@ -29,6 +33,24 @@ const statusTone: Record<string, string> = {
   Ordered: 'bg-amber-100 text-amber-700',
   Building: 'bg-purple-100 text-purple-700',
   Completed: 'bg-teal-100 text-teal-700',
+  Cancelled: 'bg-rose-100 text-rose-700',
+}
+
+const orderStatusLabel: Record<string, string> = {
+  Pending: 'در انتظار پرداخت',
+  Paid: 'پرداخت شده',
+  Processing: 'در حال پردازش',
+  Shipped: 'ارسال شده',
+  Delivered: 'تحویل شده',
+  Cancelled: 'لغو شده',
+}
+
+const orderStatusTone: Record<string, string> = {
+  Pending: 'bg-amber-100 text-amber-700',
+  Paid: 'bg-brand-100 text-brand-700',
+  Processing: 'bg-sky-100 text-sky-700',
+  Shipped: 'bg-purple-100 text-purple-700',
+  Delivered: 'bg-teal-100 text-teal-700',
   Cancelled: 'bg-rose-100 text-rose-700',
 }
 
@@ -110,6 +132,26 @@ export default function ProjectsPage() {
                 <p>📅 {formatDate(p.createdAt)}</p>
               </div>
 
+              {/* وضعیت سفارش */}
+              {p.orderId && (
+                <div className="mt-3 rounded-lg border border-ink-200 bg-ink-50 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🛒</span>
+                      <span className="text-xs font-bold text-ink-700">سفارش #{p.orderId}</span>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${orderStatusTone[p.orderStatus ?? ''] ?? 'bg-ink-100 text-ink-600'}`}>
+                      {orderStatusLabel[p.orderStatus ?? ''] ?? p.orderStatus}
+                    </span>
+                  </div>
+                  {p.orderTotal && (
+                    <p className="mt-1.5 text-xs text-ink-500">
+                      مبلغ: <span className="font-bold text-brand-700">{formatPrice(p.orderTotal)}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="mt-4 flex gap-2">
                 <Link
                   to={`/projects/${p.id}`}
@@ -117,12 +159,28 @@ export default function ProjectsPage() {
                 >
                   مشاهدهٔ پروژه ←
                 </Link>
-                <Link
-                  to={`/recipes/${encodeURIComponent(p.recipeId)}`}
-                  className="btn-outline flex-1 text-center text-xs"
-                >
-                  مشاهدهٔ دستور
-                </Link>
+                {p.orderId ? (
+                  <Link
+                    to={`/orders/${p.orderId}`}
+                    className="btn-outline flex-1 text-center text-xs"
+                  >
+                    🛒 پیگیری سفارش
+                  </Link>
+                ) : p.bomId ? (
+                  <Link
+                    to={`/projects/${p.id}/buy`}
+                    className="btn-outline flex-1 text-center text-xs"
+                  >
+                    🛒 خرید قطعات
+                  </Link>
+                ) : (
+                  <Link
+                    to={`/recipes/${encodeURIComponent(p.recipeId)}`}
+                    className="btn-outline flex-1 text-center text-xs"
+                  >
+                    مشاهدهٔ دستور
+                  </Link>
+                )}
               </div>
             </div>
           ))}

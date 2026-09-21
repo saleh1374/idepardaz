@@ -163,6 +163,67 @@ public static class SeedData
                 (robo, "W22-SIL", null, 15000, StockStatus.InStock, 1000, "https://roboiran.com/p/wire-22awg"),
             ]);
 
+        // ---------- قطعات چراغ اضطراری (MVP) ----------
+        part("BATT-LIPO-RECHARGEABLE", "باتری لیتیومی قابل شارژ (LP)", "LiPo Rechargeable Battery", "battery", "عدد", "باتری لیتیوم‌پلیمری قابل شارژ برای تغذیه LED",
+            [("capacityMah", "1200", "mAh"), ("voltageNominalV", "3.7", "V")],
+            [
+                (eca, "Lipo-1200", null, 180000, StockStatus.InStock, 30, "https://eshop.eca.ir/product/lipo-1200"),
+                (robo, "LIPO1200", null, 190000, StockStatus.InStock, 20, "https://roboiran.com/p/lipo-1200"),
+            ]);
+
+        part("CHARGE-MODULE-USB", "ماژول شارژ USB با مدیریت شارژ", "USB Charge Module", "charger", "عدد", "ماژول شارژ با حفاظت از شارژ بیش از حد — ورودی USB ۵ ولت",
+            [("chargeCurrentA", "1", "A"), ("inputVoltageV", "5", "V")],
+            [
+                (eca, "CHGUSB-01", null, 25000, StockStatus.InStock, 200, "https://eshop.eca.ir/product/charge-module-usb"),
+                (robo, "CHG-USB", null, 27000, StockStatus.InStock, 150, "https://roboiran.com/p/charge-module-usb"),
+            ]);
+
+        part("RES-100", "مقاومت ۱۰۰ اهم ۱/۴ وات", "Resistor 100Ω", "resistor", "عدد", "مقاومت ۱۰۰ اهمی برای محدودکردن جریان LED",
+            [("resistanceOhm", "100", "Ω"), ("powerW", "0.25", "W")],
+            [
+                (eca, "RES-100R", null, 200, StockStatus.InStock, 5000, "https://eshop.eca.ir/product/res-100"),
+                (robo, "RES100", null, 250, StockStatus.InStock, 3000, "https://roboiran.com/p/resistor-100"),
+                (cafe, "RES-100", null, 220, StockStatus.InStock, 2000, "https://caferobot.ir/c/resistor-100"),
+            ]);
+
+        part("ENCLOSURE-PLASTIC", "قاب پلاستیکی چندمنظوره", "Plastic Enclosure", "enclosure", "عدد", "قاب پلاستیکی با پایه برای نصب دیواری یا رومیزی",
+            [("material", "ABS", null), ("mountType", "wall-desktop", null)],
+            [
+                (robo, "ENC-PLST", null, 95000, StockStatus.InStock, 15, "https://roboiran.com/p/enclosure-plastic"),
+                (eca, "ENC-PLST-01", null, 90000, StockStatus.InStock, 10, "https://eshop.eca.ir/product/enclosure-plastic"),
+            ]);
+
+        // ---------- قطعات USB فن (MVP) ----------
+        part("DC-FAN-5V", "فن DC ۵ ولت", "DC Fan 5V", "fan", "عدد", "فن کوچک ۵ ولتی مناسب فنهای USB",
+            [("voltageV", "5", "V"), ("size", "40", "mm")],
+            [
+                (robo, "FAN-5V-40", null, 45000, StockStatus.InStock, 25, "https://roboiran.com/p/fan-5v-40mm"),
+                (eca, "FAN5V-40", null, 42000, StockStatus.InStock, 30, "https://eshop.eca.ir/product/fan-5v"),
+            ]);
+
+        // ---------- قطعات تستر باتری (MVP) ----------
+        part("LED-5MM-GREEN", "LED سبز ۵ میلی‌متر", "LED 5mm Green", "led", "عدد", "LED سبز ۵ میلی‌متری (ولتاژ رو به جلو ~2.1V)",
+            [("forwardVoltageV", "2.1", "V"), ("currentMa", "20", "mA")],
+            [
+                (eca, "LED-S5-G", null, 800, StockStatus.InStock, 600, "https://eshop.eca.ir/product/led-s5-g"),
+                (robo, "LEDGRN5", null, 900, StockStatus.InStock, 250, "https://roboiran.com/p/led-green-5mm"),
+            ]);
+
+        part("RES-1K", "مقاومت ۱ کیلوام ۱/۴ وات", "Resistor 1KΩ", "resistor", "عدد", "مقاومت ۱ کیلوامی برای محدودکردن جریان LED در تستر باتری",
+            [("resistanceOhm", "1000", "Ω"), ("powerW", "0.25", "W")],
+            [
+                (eca, "RES-1KR", null, 200, StockStatus.InStock, 5000, "https://eshop.eca.ir/product/res-1k"),
+                (robo, "RES1K", null, 250, StockStatus.InStock, 3000, "https://roboiran.com/p/resistor-1k"),
+                (cafe, "RES-1K", null, 220, StockStatus.InStock, 2000, "https://caferobot.ir/c/resistor-1k"),
+            ]);
+
+        part("BATTERY-HOLDER", "نگهدارنده باتری قلمی/AA", "Battery Holder AA", "holder", "عدد", "نگهدارنده باتری ۱ تا ۴ عددی AA/AAA با سیم",
+            [("compatible", "AA/AAA", null), ("cellCount", "1-4", null)],
+            [
+                (robo, "BTH-AA", null, 25000, StockStatus.InStock, 40, "https://roboiran.com/p/battery-holder-aa"),
+                (eca, "BH-AA1", null, 22000, StockStatus.InStock, 50, "https://eshop.eca.ir/product/battery-holder"),
+            ]);
+
         // ---------- قوانین BOM (قانون‌ها دیتا هستند — بخش ۶ سند) ----------
         db.BomRuleDefinitions.AddRange(
             new BomRuleDefinition { Code = "BOM-001", NameFa = "قطعهٔ الزامی بدون تأمین‌کننده", Description = "هر قطعهٔ Required باید حداقل یک SupplierProduct فعال داشته باشد.", Severity = RuleSeverity.Error },

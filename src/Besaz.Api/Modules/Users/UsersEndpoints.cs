@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Besaz.Api.Modules.Users;
 
 /// <summary>
-/// مدیریت کاربران — پروفایل، به‌روزرسانی اطلاعات، لیست پروژه‌ها و سفارشات.
+/// مدیریت کاربران — ثبت‌نام، ورود، پروفایل، پروژه‌ها و سفارشات.
+/// MVP: احراز هویت ساده (رمز عبور ساده — JWT در فاز بعد).
 /// </summary>
 public static class UsersEndpoints
 {
@@ -13,6 +14,11 @@ public static class UsersEndpoints
     {
         var g = app.MapGroup("/api/users");
 
+        // احراز هویت
+        g.MapPost("/register", Register);
+        g.MapPost("/login", Login);
+
+        // پروفایل
         g.MapGet("/me", GetProfile);
         g.MapPatch("/me", UpdateProfile);
         g.MapGet("/{id:guid}", GetUser);
@@ -22,7 +28,81 @@ public static class UsersEndpoints
         return app;
     }
 
+    public sealed record RegisterRequest(string Name, string? Email, string? Phone, string Password, string Role = "Member");
+    public sealed record LoginRequest(string Email, string Password);
     public sealed record UpdateProfileRequest(string? Name, string? Email, string? Phone);
+
+    // ---------- ثبت‌نام ----------
+
+    private static async Task<IResult> Register(AppDbContext db, RegisterRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Name))
+            return Results.BadRequest(new { message = "نام الزامی است." });
+        if (string.IsNullOrWhiteSpace(req.Password) || req.Password.Length < 4)
+            return Results.BadRequest(new { message = "رمز عبور باید حداقل ۴ کاراکتر باشد." });
+
+        // بررسی تکراری نبودن ایمیل
+        if (!string.IsNullOrWhiteSpace(req.Email))
+        {
+            var exists = await db.Users.AnyAsync(u => u.Email == req.Email);
+            if (exists)
+                return Results.BadRequest(new { message = "ایمیل قبلاً ثبت شده است." });
+        }
+
+        // تبدیل نقش
+        var role = req.Role.ToLowerInvariant() switch
+        {
+            "maker" => UserRole.Maker,
+            "supplier" => UserRole.Supplier,
+            "admin" => UserRole.Admin,
+            _ => UserRole.Member,
+        };
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = req.Name.Trim(),
+            Email = req.Email?.Trim(),
+            Phone = req.Phone?.Trim(),
+            Role = role,
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        return Results.Ok(new
+        {
+            id = user.Id,
+            name = user.Name,
+            email = user.Email,
+            phone = user.Phone,
+            role = user.Role.ToString(),
+        });
+    }
+
+    // ---------- ورود ----------
+
+    private static async Task<IResult> Login(AppDbContext db, LoginRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
+            return Results.BadRequest(new { message = "ایمیل و رمز عبور الزامی است." });
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email);
+        if (user is null)
+            return Results.Unauthorized();
+
+        // MVP: رمز عبور ساده — در فاز بعد bcrypt + JWT
+        // فعلاً هر رمزی قبول می‌شود (فقط ایمیل مهم است)
+        return Results.Ok(new
+        {
+            id = user.Id,
+            name = user.Name,
+            email = user.Email,
+            phone = user.Phone,
+            role = user.Role.ToString(),
+        });
+    }
 
     // ---------- پروفایل کاربر جاری ----------
 

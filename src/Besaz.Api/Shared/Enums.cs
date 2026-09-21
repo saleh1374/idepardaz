@@ -64,6 +64,8 @@ public enum UserRole
     Member = 0,
     Reviewer = 1,
     Admin = 2,
+    Maker = 3,
+    Supplier = 4,
 }
 
 /// <summary>شدت یک قانون سازگاری در BOM.</summary>

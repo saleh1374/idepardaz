@@ -2,6 +2,7 @@ using Besaz.Api.Data;
 using Besaz.Api.Http;
 using Besaz.Api.Modules.Projects;
 using Besaz.Api.Modules.Safety;
+using Besaz.Api.Modules.Users;
 using Besaz.Api.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ public static class OrdersEndpoints
 
     private static async Task<IResult> ListOrders(AppDbContext db, string? status, int page = 1, int pageSize = 50)
     {
-        var query = db.Orders.AsQueryable();
+        var query = db.Orders.Include(o => o.Items).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status))
             query = query.Where(o => o.Status == status);
@@ -60,6 +61,12 @@ public static class OrdersEndpoints
 
     private static async Task<IResult> CreateFromProject(AppDbContext db, CreateOrderRequest req, HttpRequest http)
     {
+        var (userId, _) = UserContext.Resolve(http);
+
+        // فقط کاربران لاگین‌شده می‌توانند سفارش ثبت کنند
+        if (userId == WellKnownUsers.Guest)
+            return Results.Unauthorized();
+
         var project = await db.Projects.FirstOrDefaultAsync(p => p.Id == req.ProjectId);
         if (project is null) return Results.NotFound(new { message = "پروژه یافت نشد." });
 
@@ -93,6 +100,7 @@ public static class OrdersEndpoints
             Items = orderItems,
         };
         db.Orders.Add(order);
+        await db.SaveChangesAsync(); // برای دریافت Id سفارش
 
         // Payment — درگاه واقعی (ZarinPal/IDPay) در فاز دو متصل می‌شود
         var payment = new Payment
