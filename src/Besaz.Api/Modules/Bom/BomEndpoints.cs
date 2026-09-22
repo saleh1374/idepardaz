@@ -268,8 +268,8 @@ public static class BomEndpoints
             warnings = Array.Empty<string>(),
             items = bom.Items.Select(i => new
             {
-                i.LogicalPartId, i.LogicalPartName, i.Role, i.Quantity,
-                i.SupplierName, i.Sku, i.UnitPrice, i.LineTotal, i.StockStatus, i.Url,
+                i.LogicalPartId, i.LogicalPartName, Role = i.Role.ToString(), i.Quantity,
+                i.SupplierName, i.Sku, i.UnitPrice, i.LineTotal, StockStatus = i.StockStatus.ToString(), i.Url,
             }),
         });
     }
