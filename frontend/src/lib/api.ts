@@ -224,6 +224,13 @@ export const api = {
       items: BomItem[]
     }>(`/orders/${id}`),
 
+  /** تغییر وضعیت سفارش — فقط ادمین (قوانین چرخهٔ عمر در بک‌اند اعمال می‌شود) */
+  changeOrderStatus: (id: number, status: string) =>
+    request<{ id: number; status: string }>(`/orders/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
   listOrders: (params?: { status?: string; page?: number }) => {
     const q = new URLSearchParams()
     if (params?.status) q.set('status', params.status)
