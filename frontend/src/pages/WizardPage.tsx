@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import type { IntentResult } from '../lib/types'
 import Badge from '../components/Badge'
+import { Ic, type IconName } from '../lib/icons'
 
-const examples = [
-  { text: 'می‌خواهم یک چراغ نور مطالعه با LED و USB بسازم', icon: '💡' },
-  { text: 'یک پاوربانک با باتری لیتیومی ۱۸۶۵۰ می‌خواهم', icon: '🔋' },
-  { text: 'می‌خواهم فن خنک‌کننده برای کیس بسازم', icon: '🌀' },
+const examples: Array<{ text: string; icon: IconName }> = [
+  { text: 'می‌خواهم یک چراغ نور مطالعه با LED و USB بسازم', icon: 'lightbulb' },
+  { text: 'یک پاوربانک با باتری لیتیومی ۱۸۶۵۰ می‌خواهم', icon: 'batteryCharging' },
+  { text: 'می‌خواهم فن خنک‌کننده برای کیس بسازم', icon: 'fan' },
 ]
 
 export default function WizardPage() {
@@ -34,8 +35,10 @@ export default function WizardPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <div className="animate-fadeInUp text-center">
-        <span className="text-4xl">✨</span>
-        <h1 className="mt-3 text-3xl font-black text-ink-900">ویزارد هوشمند بساز</h1>
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-lg shadow-brand-500/25">
+          <Ic name="sparkles" size={30} />
+        </span>
+        <h1 className="mt-4 text-3xl font-black text-ink-900">ویزارد هوشمند بساز</h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-ink-500">
           خواسته‌ات را بنویس؛ با کاتالوگ دستورهای تأییدشده تطبیق داده و مناسب‌ترین را پیشنهاد
           می‌دهد.
@@ -43,7 +46,8 @@ export default function WizardPage() {
       </div>
 
       <div className="animate-fadeInUp card mt-8 p-6" style={{ animationDelay: '100ms' }}>
-        <label htmlFor="idea" className="text-sm font-bold text-ink-800">
+        <label htmlFor="idea" className="flex items-center gap-2 text-sm font-bold text-ink-800">
+          <Ic name="message" size={16} className="text-brand-600" />
           چه چیزی می‌خواهی بسازی؟
         </label>
         <textarea
@@ -64,9 +68,9 @@ export default function WizardPage() {
                   setText(ex.text)
                   void ask(ex.text)
                 }}
-                className="rounded-full border border-ink-200 bg-ink-50 px-3 py-1 text-xs text-ink-500 transition-all duration-200 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-sm"
+                className="flex items-center gap-1.5 rounded-full border border-ink-200 bg-ink-50 px-3 py-1 text-xs text-ink-500 transition-all duration-200 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 hover:shadow-sm"
               >
-                <span className="ml-1">{ex.icon}</span>
+                <Ic name={ex.icon} size={13} className="shrink-0" />
                 {ex.text.length > 30 ? ex.text.slice(0, 30) + '…' : ex.text}
               </button>
             ))}
@@ -83,14 +87,18 @@ export default function WizardPage() {
                 در حال تحلیل…
               </span>
             ) : (
-              '✨ تحلیل خواسته'
+              <>
+                <Ic name="target" size={16} />
+                تحلیل خواسته
+              </>
             )}
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="animate-fadeIn mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+        <div className="animate-fadeIn mt-6 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+          <Ic name="alertCircle" size={17} className="mt-0.5 shrink-0" />
           {error}
         </div>
       )}
@@ -99,7 +107,10 @@ export default function WizardPage() {
         <div className="animate-fadeInUp card mt-8 p-6">
           {result.warnings.length > 0 && (
             <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-bold text-amber-800">⚠️ هشدارهای ایمنی</p>
+              <p className="flex items-center gap-2 text-sm font-bold text-amber-800">
+                <Ic name="alert" size={16} />
+                هشدارهای ایمنی
+              </p>
               <ul className="mt-2 space-y-1 text-sm text-amber-800">
                 {result.warnings.map((w, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -115,16 +126,20 @@ export default function WizardPage() {
             <div>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold text-brand-600">🎯 پیشنهاد بساز</p>
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-brand-600">
+                    <Ic name="target" size={14} />
+                    پیشنهاد بساز
+                  </p>
                   <h2 className="mt-1 text-xl font-black text-ink-900">
                     {result.recommendedRecipeTitle ?? result.recommendedRecipeId}
                   </h2>
                 </div>
                 <Link
                   to={`/recipes/${encodeURIComponent(result.recommendedRecipeId)}`}
-                  className="btn-primary shrink-0 text-xs"
+                  className="btn-primary flex shrink-0 items-center gap-1.5 text-xs"
                 >
-                  باز کردن دستور ←
+                  باز کردن دستور
+                  <Ic name="arrowLeft" size={14} />
                 </Link>
               </div>
 
@@ -157,13 +172,14 @@ export default function WizardPage() {
             </div>
           ) : (
             <div className="text-center">
-              <span className="text-3xl">🤔</span>
+              <img src="/empty-search.svg" alt="" className="mx-auto h-36 w-auto" />
               <p className="mt-2 text-lg font-black text-ink-800">هنوز دستوری برای این خواسته نداریم</p>
               <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-ink-500">
                 {result.missingRequirements[0] ?? 'پرسش خود را دقیق‌تر بپرسید.'}
               </p>
-              <Link to="/recipes" className="btn-outline mt-5 inline-flex text-sm">
-                مرور دستورهای موجود ←
+              <Link to="/recipes" className="btn-outline mt-5 inline-flex items-center gap-1.5 text-sm">
+                مرور دستورهای موجود
+                <Ic name="arrowLeft" size={15} />
               </Link>
             </div>
           )}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api, ApiError } from '../lib/api'
+import { Ic } from '../lib/icons'
 import type { BomItem, BomResult } from '../lib/types'
 import { formatNumber, formatPrice, roleLabel, stockLabel } from '../lib/format'
 import type { ParamValues } from './ParameterForm'
@@ -88,7 +89,10 @@ export default function BomPanel({
               در حال محاسبه…
             </span>
           ) : (
-            '💰 محاسبهٔ BOM با قیمت زنده'
+            <span className="flex items-center justify-center gap-2">
+              <Ic name="wallet" size={18} />
+              محاسبهٔ BOM با قیمت زنده
+            </span>
           )}
         </button>
       )}
@@ -97,7 +101,10 @@ export default function BomPanel({
         <div className="space-y-4">
           {bom.warnings.length > 0 && (
             <div className="animate-fadeIn rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-bold text-amber-800">⚠️ هشدارها</p>
+              <p className="flex items-center gap-2 text-sm font-bold text-amber-800">
+                <Ic name="triangleAlert" size={16} />
+                هشدارها
+              </p>
               <ul className="mt-2 space-y-1 text-sm text-amber-800">
                 {bom.warnings.map((w, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -111,7 +118,10 @@ export default function BomPanel({
 
           {bom.errors.length > 0 && (
             <div className="animate-fadeIn rounded-xl border border-rose-200 bg-rose-50 p-4">
-              <p className="text-sm font-bold text-rose-800">❌ BOM معتبر نیست</p>
+              <p className="flex items-center gap-2 text-sm font-bold text-rose-800">
+                <Ic name="circleX" size={16} />
+                BOM معتبر نیست
+              </p>
               <ul className="mt-2 space-y-1 text-sm text-rose-800">
                 {bom.errors.map((e, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -174,8 +184,9 @@ export default function BomPanel({
                   <p className="text-2xl font-extrabold text-brand-800">{formatPrice(bom.total)}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={generate} className="btn-outline text-xs">
-                    🔄 محاسبهٔ دوباره
+                  <button type="button" onClick={generate} className="btn-outline inline-flex items-center gap-1.5 text-xs">
+                    <Ic name="refresh" size={14} />
+                    محاسبهٔ دوباره
                   </button>
                   <button
                     type="button"
@@ -189,9 +200,15 @@ export default function BomPanel({
                         در حال ثبت…
                       </span>
                     ) : projectCreated ? (
-                      '✅ ثبت شده'
+                      <span className="flex items-center gap-1.5">
+                        <Ic name="circleCheck" size={14} />
+                        ثبت شده
+                      </span>
                     ) : (
-                      '📝 ثبت به‌عنوان پروژهٔ من'
+                      <span className="flex items-center gap-1.5">
+                        <Ic name="notebook" size={14} />
+                        ثبت به‌عنوان پروژهٔ من
+                      </span>
                     )}
                   </button>
                 </div>
@@ -199,20 +216,25 @@ export default function BomPanel({
 
               {projectMsg && (
                 <div className="animate-fadeIn mt-3 rounded-xl border border-brand-300 bg-brand-50 p-4">
-                  <p className="text-sm font-medium text-brand-800">✅ {projectMsg}</p>
+                  <p className="flex items-start gap-2 text-sm font-medium text-brand-800">
+                    <Ic name="circleCheck" size={16} className="mt-0.5 shrink-0 text-brand-600" />
+                    {projectMsg}
+                  </p>
                   {createdProjectId && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a
                         href={`/projects/${createdProjectId}/buy`}
                         className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700 transition-colors"
                       >
-                        🛒 خرید قطعات
+                        <Ic name="cart" size={16} />
+                        خرید قطعات
                       </a>
                       <a
                         href={`/projects/${createdProjectId}`}
                         className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-white px-5 py-2.5 text-sm font-bold text-brand-700 hover:bg-brand-50 transition-colors"
                       >
-                        📁 مشاهده پروژه
+                        <Ic name="folder" size={16} />
+                        مشاهده پروژه
                       </a>
                     </div>
                   )}

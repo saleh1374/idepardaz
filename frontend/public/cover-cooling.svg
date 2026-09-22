@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none" role="img" aria-label="پوشش دستهٔ خنک‌کننده">
+  <defs>
+    <linearGradient id="coolSky" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#082f49"/>
+      <stop offset="0.6" stop-color="#0c4a6e"/>
+      <stop offset="1" stop-color="#164e63"/>
+    </linearGradient>
+    <radialGradient id="coolGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7dd3fc" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#7dd3fc" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fanBlade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="coolFrame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="coolSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="coolBlur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="640" height="360" rx="28" fill="url(#coolSky)"/>
+  <circle cx="240" cy="200" r="180" fill="url(#coolGlow)"/>
+  <g fill="#7dd3fc" opacity="0.5">
+    <circle cx="80" cy="52" r="2"/><circle cx="180" cy="90" r="1.5" opacity="0.4"/>
+    <circle cx="560" cy="60" r="2.2" opacity="0.6"/><circle cx="600" cy="140" r="1.6" opacity="0.4"/>
+    <circle cx="480" cy="36" r="1.5" opacity="0.4"/><circle cx="120" cy="150" r="1.4" opacity="0.35"/>
+  </g>
+
+  <!-- جریان هوا (پشت فن) -->
+  <g stroke="#7dd3fc" stroke-linecap="round" opacity="0.7">
+    <path d="M440 130 h96" stroke-width="5" stroke-dasharray="2 22" filter="url(#coolBlur)"/>
+    <path d="M460 160 h110" stroke-width="5" stroke-dasharray="2 20" filter="url(#coolBlur)" opacity="0.8"/>
+    <path d="M448 190 h86" stroke-width="5" stroke-dasharray="2 24" filter="url(#coolBlur)" opacity="0.6"/>
+    <path d="M466 220 h104" stroke-width="5" stroke-dasharray="2 18" filter="url(#coolBlur)" opacity="0.5"/>
+  </g>
+
+  <!-- بدنهٔ فن -->
+  <g filter="url(#coolSoft)">
+    <rect x="96" y="76" width="290" height="290" rx="26" fill="url(#coolFrame)"/>
+    <rect x="96" y="76" width="290" height="290" rx="26" stroke="#334155" stroke-width="3"/>
+    <rect x="120" y="100" width="242" height="242" rx="20" fill="#0b1526"/>
+    <!-- حلقهٔ محافظ -->
+    <circle cx="241" cy="221" r="108" fill="none" stroke="#1e3a5f" stroke-width="10"/>
+    <circle cx="241" cy="221" r="92" fill="none" stroke="#16324f" stroke-width="4"/>
+    <!-- پره‌ها -->
+    <g>
+      <path d="M241 221 C 210 170, 220 130, 248 118 C 268 130, 268 180, 241 221 Z" fill="url(#fanBlade)"/>
+      <path d="M241 221 C 284 196, 320 200, 330 226 C 318 248, 270 244, 241 221 Z" fill="url(#fanBlade)" opacity="0.9"/>
+      <path d="M241 221 C 258 268, 250 306, 224 314 C 204 300, 214 252, 241 221 Z" fill="url(#fanBlade)" opacity="0.85"/>
+      <path d="M241 221 C 194 226, 162 210, 160 184 C 178 168, 222 192, 241 221 Z" fill="url(#fanBlade)" opacity="0.8"/>
+    </g>
+    <circle cx="241" cy="221" r="26" fill="#0f172a" stroke="#475569" stroke-width="4"/>
+    <circle cx="241" cy="221" r="8" fill="#7dd3fc"/>
+    <!-- پیچ‌های گوشه -->
+    <g fill="#334155" stroke="#64748b" stroke-width="2">
+      <circle cx="136" cy="116" r="6"/><circle cx="346" cy="116" r="6"/>
+      <circle cx="136" cy="326" r="6"/><circle cx="346" cy="326" r="6"/>
+    </g>
+  </g>
+
+  <!-- رطوبت‌سنج کوچک -->
+  <g filter="url(#coolSoft)">
+    <rect x="440" y="270" width="150" height="64" rx="14" fill="#ffffff"/>
+    <rect x="456" y="284" width="56" height="9" rx="4.5" fill="#cbd5e1"/>
+    <rect x="456" y="302" width="88" height="12" rx="6" fill="#0284c7"/>
+    <circle cx="574" cy="288" r="6" fill="#38bdf8"/>
+  </g>
+
+  <!-- برفک سرد -->
+  <g fill="#e0f2fe">
+    <path d="M420 84 l3.2 7 l7.4 0.8 l-5.5 5 l1.6 7.4 l-6.7 -3.9 l-6.7 3.9 l1.6 -7.4 l-5.5 -5 l7.4 -0.8 z" opacity="0.85"/>
+    <path d="M60 300 l2.6 5.8 l6 0.7 l-4.5 4.1 l1.3 6 l-5.4 -3.2 l-5.4 3.2 l1.3 -6 l-4.5 -4.1 l6 -0.7 z" opacity="0.6"/>
+    <path d="M600 250 l2.6 5.8 l6 0.7 l-4.5 4.1 l1.3 6 l-5.4 -3.2 l-5.4 3.2 l1.3 -6 l-4.5 -4.1 l6 -0.7 z" opacity="0.6"/>
+  </g>
+</svg>

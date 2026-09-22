@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
 import Badge from '../components/Badge'
+import { Ic, PART_CATEGORY_ICONS } from '../lib/icons'
 
 interface PartSummary {
   id: string
@@ -49,19 +50,6 @@ const categoryLabels: Record<string, string> = {
   wire: 'سیم',
 }
 
-const categoryIcons: Record<string, string> = {
-  led: '💡',
-  resistor: '⚡',
-  cable: '🔌',
-  switch: '🔘',
-  battery: '🔋',
-  protection: '🛡️',
-  converter: '⚡',
-  charger: '🔌',
-  enclosure: '📦',
-  wire: '〰️',
-}
-
 function StockDot({ status }: { status: string }) {
   const tone =
     status === 'InStock' ? 'bg-brand-500' :
@@ -84,19 +72,26 @@ export default function PartsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [category, setCategory] = useState('')
   const [selectedPart, setSelectedPart] = useState<PartDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+
+  // debounce جستجو — جلوگیری از درخواست به ازای هر حرف
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350)
+    return () => clearTimeout(t)
+  }, [search])
 
   useEffect(() => {
     setLoading(true)
     setError(null)
     api
-      .listParts({ search: search || undefined, category: category || undefined })
+      .listParts({ search: debouncedSearch || undefined, category: category || undefined })
       .then((r) => { setParts(r.items) })
       .catch((e) => { setError(e instanceof Error ? e.message : 'خطا') })
       .finally(() => { setLoading(false) })
-  }, [search, category])
+  }, [debouncedSearch, category])
 
   const openDetail = async (id: string) => {
     setDetailLoading(true)
@@ -134,13 +129,20 @@ export default function PartsPage() {
               key={cat}
               type="button"
               onClick={() => setCategory(cat)}
-              className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
                 category === cat
                   ? 'bg-brand-600 text-white'
                   : 'border border-ink-200 bg-white text-ink-600 hover:bg-ink-50'
               }`}
             >
-              {cat ? `${categoryIcons[cat] ?? ''} ${categoryLabels[cat] ?? cat}` : 'همه'}
+              {cat ? (
+                <>
+                  <Ic name={PART_CATEGORY_ICONS[cat] ?? 'boxes'} size={13} />
+                  {categoryLabels[cat] ?? cat}
+                </>
+              ) : (
+                'همه'
+              )}
             </button>
           ))}
         </div>
@@ -169,7 +171,7 @@ export default function PartsPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="text-base font-bold text-ink-900">{part.nameFa}</h3>
-                  <span className="text-lg">{categoryIcons[part.category] ?? '📦'}</span>
+                  <Ic name={PART_CATEGORY_ICONS[part.category] ?? 'boxes'} size={18} className="shrink-0 text-brand-500" />
                 </div>
                 <p className="text-xs text-ink-400" dir="ltr">{part.nameEn}</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -179,24 +181,25 @@ export default function PartsPage() {
                 {part.description && (
                   <p className="line-clamp-2 text-xs leading-5 text-ink-500">{part.description}</p>
                 )}
-                <div className="mt-auto flex items-center justify-between border-t border-ink-100 pt-2 text-xs text-ink-500">
-                  <span>از {formatPrice(part.minPriceToman)}</span>
-                  <span className="font-mono text-ink-400" dir="ltr">{part.id}</span>
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-ink-100 pt-2 text-xs text-ink-500">
+                  <span className="shrink-0">از {formatPrice(part.minPriceToman)}</span>
+                  <span className="truncate font-mono text-ink-400" dir="ltr">{part.id}</span>
                 </div>
               </button>
             ))}
       </div>
 
       {!loading && parts.length === 0 && (
-        <p className="mt-10 text-center text-sm text-ink-400">
-          قطعه‌ای یافت نشد.
-        </p>
+        <div className="mt-10 text-center">
+          <img src="/empty-search.svg" alt="" className="mx-auto h-36 w-auto" />
+          <p className="mt-4 text-sm text-ink-400">قطعه‌ای یافت نشد.</p>
+        </div>
       )}
 
       {/* Detail panel */}
       {selectedPart && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="card max-h-[85vh] w-full max-w-2xl overflow-y-auto bg-white p-6 shadow-2xl">
+          <div className="relative card max-h-[85vh] w-full max-w-2xl overflow-y-auto bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-black text-ink-900">{selectedPart.nameFa}</h2>
@@ -207,7 +210,7 @@ export default function PartsPage() {
                 onClick={() => setSelectedPart(null)}
                 className="grid h-8 w-8 place-items-center rounded-lg text-ink-400 hover:bg-ink-100"
               >
-                ✕
+                <Ic name="close" size={16} />
               </button>
             </div>
 

@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import { Ic } from '../lib/icons'
 
 interface Props {
   children: ReactNode
@@ -23,7 +24,9 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-          <span className="text-6xl">💥</span>
+          <span className="grid h-24 w-24 place-items-center rounded-3xl bg-rose-50 text-rose-500">
+            <Ic name="triangleAlert" size={48} />
+          </span>
           <h1 className="mt-6 text-2xl font-black text-ink-900">خطایی رخ داد!</h1>
           <p className="mt-3 max-w-md text-sm leading-7 text-ink-500">
             متأفانه یک خطای غیرمنتظره رخ داد. لطفاً صفحه را رفرش کنید یا به صفحهٔ خانه برگردید.

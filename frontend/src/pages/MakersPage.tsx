@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { Ic } from '../lib/icons'
+import Avatar from '../components/Avatar'
 
 interface Maker {
   id: string
@@ -28,11 +30,22 @@ function StarRating({ rating }: { rating: number }) {
   const half = rating - full >= 0.5
   const empty = 5 - full - (half ? 1 : 0)
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs text-amber-500">
-      {'★'.repeat(full)}
-      {half && '½'}
-      {'☆'.repeat(empty)}
-      <span className="mr-1 font-mono text-ink-500" dir="ltr">{rating.toFixed(1)}</span>
+    <span className="inline-flex items-center gap-0.5">
+      {Array.from({ length: full }).map((_, i) => (
+        <Ic key={`f${i}`} name="star" size={13} className="fill-current text-amber-400" />
+      ))}
+      {half && (
+        <span className="relative inline-flex">
+          <Ic name="star" size={13} className="text-amber-400" />
+          <span className="absolute inset-0 overflow-hidden">
+            <Ic name="star" size={13} className="fill-current text-amber-400 opacity-40" />
+          </span>
+        </span>
+      )}
+      {Array.from({ length: empty }).map((_, i) => (
+        <Ic key={`e${i}`} name="star" size={13} className="text-ink-300" />
+      ))}
+      <span className="mr-1 font-mono text-xs text-ink-500" dir="ltr">{rating.toFixed(1)}</span>
     </span>
   )
 }
@@ -61,7 +74,10 @@ export default function MakersPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="animate-fadeInUp">
-        <h1 className="text-2xl font-black text-ink-900 sm:text-3xl">🏭 صنعتگران</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900 sm:text-3xl">
+          <Ic name="factory" size={26} className="text-brand-600" />
+          صنعتگران
+        </h1>
         <p className="mt-2 text-sm text-ink-500">
           فهرست صنعتگران و پیمانکاران تأییدشده برای ساخت پروژه‌های شما.
         </p>
@@ -84,8 +100,9 @@ export default function MakersPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
-          ❌ {error}
+        <div className="mb-6 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+          <Ic name="circleX" size={16} className="mt-0.5 shrink-0" />
+          {error}
         </div>
       )}
 
@@ -106,20 +123,22 @@ export default function MakersPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       {m.avatarUrl ? (
-                        <img src={m.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
+                        <img src={m.avatarUrl} alt="" className="h-11 w-11 rounded-full object-cover" />
                       ) : (
-                        <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-100 text-lg font-bold text-brand-700">
-                          {m.displayName?.charAt(0) ?? '?'}
-                        </span>
+                        <Avatar name={m.displayName} size="md" verified={m.isVerified} />
                       )}
                       <div>
                         <h3 className="text-base font-bold text-ink-900">{m.displayName}</h3>
-                        <p className="text-xs text-ink-400">📍 {m.city || '—'}</p>
+                        <p className="flex items-center gap-1 text-xs text-ink-400">
+                          <Ic name="mapPin" size={12} />
+                          {m.city || '—'}
+                        </p>
                       </div>
                     </div>
                     {m.isVerified && (
-                      <span className="shrink-0 rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-700">
-                        ✓ تأیید شده
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-700">
+                        <Ic name="badgeCheck" size={12} />
+                        تأیید شده
                       </span>
                     )}
                   </div>
@@ -138,7 +157,7 @@ export default function MakersPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between border-t border-ink-100 pt-2 text-xs text-ink-500">
+                  <div className="mt-auto flex items-center justify-between border-t border-ink-100 pt-2 text-xs text-ink-500">
                     <StarRating rating={m.rating} />
                     <span>{m.serviceCount} خدمات</span>
                   </div>
@@ -160,18 +179,20 @@ export default function MakersPage() {
             type="button"
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-lg border border-ink-200 px-4 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40"
+            className="inline-flex items-center gap-1 rounded-lg border border-ink-200 px-4 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40"
           >
-            ← قبلی
+            <Ic name="arrowRight" size={13} />
+            قبلی
           </button>
           <span className="text-sm font-semibold text-ink-600">صفحه {page}</span>
           <button
             type="button"
             disabled={makers.length < 6}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-lg border border-ink-200 px-4 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40"
+            className="inline-flex items-center gap-1 rounded-lg border border-ink-200 px-4 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40"
           >
-            بعدی →
+            بعدی
+            <Ic name="arrowLeft" size={13} />
           </button>
         </div>
       )}

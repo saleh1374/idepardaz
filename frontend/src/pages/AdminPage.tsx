@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { Ic } from '../lib/icons'
 
 interface DashboardStats {
   recipes: number
@@ -20,14 +21,14 @@ interface DashboardData {
 }
 
 const statCards = (s: DashboardStats) => [
-  { label: 'دستورها', value: s.recipes, icon: '📋', color: 'bg-blue-50 text-blue-700' },
-  { label: 'تأیید شده', value: s.approvedRecipes, icon: '✅', color: 'bg-green-50 text-green-700' },
-  { label: 'در انتظار', value: s.pendingRecipes, icon: '⏳', color: 'bg-yellow-50 text-yellow-700' },
-  { label: 'کاربران', value: s.users, icon: '👥', color: 'bg-purple-50 text-purple-700' },
-  { label: 'پروژه‌ها', value: s.projects, icon: '🔧', color: 'bg-indigo-50 text-indigo-700' },
-  { label: 'سفارشات', value: s.orders, icon: '📦', color: 'bg-orange-50 text-orange-700' },
-  { label: 'قطعات', value: s.parts, icon: '⚡', color: 'bg-teal-50 text-teal-700' },
-  { label: 'تأمین‌کنندگان', value: s.suppliers, icon: '🏭', color: 'bg-pink-50 text-pink-700' },
+  { label: 'دستورها', value: s.recipes, icon: 'clipboard', iconBg: 'bg-blue-100 text-blue-600' },
+  { label: 'تأیید شده', value: s.approvedRecipes, icon: 'circleCheck', iconBg: 'bg-green-100 text-green-600' },
+  { label: 'در انتظار', value: s.pendingRecipes, icon: 'hourglass', iconBg: 'bg-amber-100 text-amber-600' },
+  { label: 'کاربران', value: s.users, icon: 'users', iconBg: 'bg-violet-100 text-violet-600' },
+  { label: 'پروژه‌ها', value: s.projects, icon: 'wrench', iconBg: 'bg-indigo-100 text-indigo-600' },
+  { label: 'سفارشات', value: s.orders, icon: 'boxes', iconBg: 'bg-orange-100 text-orange-600' },
+  { label: 'قطعات', value: s.parts, icon: 'zap', iconBg: 'bg-teal-100 text-teal-600' },
+  { label: 'تأمین‌کنندگان', value: s.suppliers, icon: 'factory', iconBg: 'bg-pink-100 text-pink-600' },
 ]
 
 const statusBadge = (s: string) => {
@@ -62,31 +63,50 @@ export default function AdminPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="p-8 text-center text-ink-500">⏳ در حال بارگذاری...</div>
-  if (error) return <div className="m-8 rounded-xl bg-red-50 p-4 text-red-700">❌ {error}</div>
+  if (loading)
+    return (
+      <div className="flex items-center justify-center gap-2 p-8 text-ink-500">
+        <Ic name="hourglass" size={16} />
+        در حال بارگذاری...
+      </div>
+    )
+  if (error)
+    return (
+      <div className="m-8 flex items-center gap-2 rounded-xl bg-red-50 p-4 text-red-700">
+        <Ic name="circleX" size={16} />
+        {error}
+      </div>
+    )
   if (!data) return null
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-      <h1 className="text-2xl font-extrabold text-ink-900">⚙️ پنل مدیریت — داشبورد</h1>
+      <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ink-900">
+        <Ic name="settings" size={26} />
+        پنل مدیریت — داشبورد
+      </h1>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="stagger grid grid-cols-2 gap-4 sm:grid-cols-4">
         {statCards(data.stats).map(c => (
-          <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-            <div className="text-2xl">{c.icon}</div>
-            <div className="mt-1 text-2xl font-extrabold">{c.value}</div>
-            <div className="text-sm font-medium">{c.label}</div>
+          <div key={c.label} className="card card-hover flex items-center gap-3 p-4">
+            <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${c.iconBg}`}>
+              <Ic name={c.icon} size={22} />
+            </span>
+            <div className="min-w-0">
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(c.value)}</div>
+              <div className="truncate text-xs font-semibold text-ink-500">{c.label}</div>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Quick Links */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Link to="/admin/users" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">👥 مدیریت کاربران</Link>
-        <Link to="/admin/recipes" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">📋 مدیریت دستورها</Link>
-        <Link to="/admin/orders" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">📦 مدیریت سفارشات</Link>
-        <Link to="/admin/audit" className="rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors">📝 گزارش عملیات</Link>
+        <Link to="/admin/users" className="flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors"><Ic name="users" size={18} /> مدیریت کاربران</Link>
+        <Link to="/admin/recipes" className="flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors"><Ic name="clipboard" size={18} /> مدیریت دستورها</Link>
+        <Link to="/admin/orders" className="flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors"><Ic name="boxes" size={18} /> مدیریت سفارشات</Link>
+        <Link to="/admin/audit" className="flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white p-4 text-center font-semibold text-ink-700 shadow-sm hover:bg-ink-50 transition-colors"><Ic name="notebook" size={18} /> گزارش عملیات</Link>
       </div>
 
       {/* Recent Projects */}

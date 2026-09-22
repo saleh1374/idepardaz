@@ -29,7 +29,7 @@ public static class SeedData
 
         // ---------- Users ----------
         db.Users.AddRange(
-            new User { Id = WellKnownUsers.BesazTeam, Name = "تیم بساز", Role = UserRole.Admin, CreatedAt = nowish },
+            new User { Id = WellKnownUsers.BesazTeam, Name = "تیم بساز", Email = "admin@besaz.ir", Phone = "0210000000", Role = UserRole.Admin, CreatedAt = nowish },
             new User { Id = WellKnownUsers.EngineerReviewer, Name = "بازبین فنی", Role = UserRole.Reviewer, CreatedAt = nowish },
             new User { Id = WellKnownUsers.SafetyReviewer, Name = "بازبین ایمنی", Role = UserRole.Reviewer, CreatedAt = nowish },
             new User { Id = WellKnownUsers.Guest, Name = "میهمان", Role = UserRole.Member, CreatedAt = nowish });

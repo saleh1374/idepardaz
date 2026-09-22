@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Ic } from '../lib/icons'
 
 interface SupplierStats {
   totalProducts: number
@@ -57,33 +58,49 @@ export default function SupplierDashboardPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-ink-900">🏪 داشبورد تأمین‌کننده</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900"><Ic name="store" size={26} /> داشبورد تأمین‌کننده</h1>
         <Link to="/supplier/products" className="btn-primary px-5 py-2 text-sm">
           + افزودن محصول
         </Link>
       </div>
 
       {stats && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-xl bg-sky-50 p-4 text-sky-700">
-            <div className="text-2xl">📦</div>
-            <div className="mt-1 text-2xl font-extrabold">{stats.totalProducts}</div>
-            <div className="text-sm font-medium">کل محصولات</div>
+        <div className="stagger grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-600">
+              <Ic name="boxes" size={22} />
+            </span>
+            <div>
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(stats.totalProducts)}</div>
+              <div className="text-xs font-semibold text-ink-500">کل محصولات</div>
+            </div>
           </div>
-          <div className="rounded-xl bg-green-50 p-4 text-green-700">
-            <div className="text-2xl">✅</div>
-            <div className="mt-1 text-2xl font-extrabold">{stats.activeProducts}</div>
-            <div className="text-sm font-medium">فعال</div>
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-green-100 text-green-600">
+              <Ic name="circleCheck" size={22} />
+            </span>
+            <div>
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(stats.activeProducts)}</div>
+              <div className="text-xs font-semibold text-ink-500">فعال</div>
+            </div>
           </div>
-          <div className="rounded-xl bg-amber-50 p-4 text-amber-700">
-            <div className="text-2xl">⏳</div>
-            <div className="mt-1 text-2xl font-extrabold">{stats.pendingOrders}</div>
-            <div className="text-sm font-medium">سفارش در انتظار</div>
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-600">
+              <Ic name="hourglass" size={22} />
+            </span>
+            <div>
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(stats.pendingOrders)}</div>
+              <div className="text-xs font-semibold text-ink-500">سفارش در انتظار</div>
+            </div>
           </div>
-          <div className="rounded-xl bg-brand-50 p-4 text-brand-700">
-            <div className="text-2xl">💰</div>
-            <div className="mt-1 text-2xl font-extrabold">{formatPrice(stats.totalSales)}</div>
-            <div className="text-sm font-medium">فروش کل</div>
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-100 text-brand-600">
+              <Ic name="wallet" size={22} />
+            </span>
+            <div className="min-w-0">
+              <div className="truncate text-base font-black text-brand-700">{formatPrice(stats.totalSales)}</div>
+              <div className="text-xs font-semibold text-ink-500">فروش کل</div>
+            </div>
           </div>
         </div>
       )}
@@ -94,7 +111,7 @@ export default function SupplierDashboardPage() {
         <div className="divide-y divide-ink-50">
           {orders.length === 0 ? (
             <div className="p-10 text-center text-ink-400">
-              <span className="text-4xl">📦</span>
+              <img src="/empty-box.svg" alt="" className="mx-auto h-32 w-auto" />
               <p className="mt-3 text-sm font-bold">هنوز سفارشی ندارید</p>
             </div>
           ) : (

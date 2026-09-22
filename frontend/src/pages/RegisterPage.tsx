@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import { useUser } from '../lib/UserContext'
+import { Ic, type IconName } from '../lib/icons'
 
 const roles = [
   {
     value: 'Member',
     label: 'کاربر عادی',
-    icon: '👤',
+    icon: 'userRound' as IconName,
     desc: 'پروژه بساز، BOM بگیر، یاد بگیر',
     color: 'border-brand-300 bg-brand-50 hover:border-brand-500',
     active: 'border-brand-500 bg-brand-100 shadow-md',
@@ -15,7 +16,7 @@ const roles = [
   {
     value: 'Maker',
     label: 'صنعتگر',
-    icon: '🔧',
+    icon: 'hardHat' as IconName,
     desc: 'خدمات ساخت ارائه بده، مشتری پیدا کن',
     color: 'border-teal-300 bg-teal-50 hover:border-teal-500',
     active: 'border-teal-500 bg-teal-100 shadow-md',
@@ -23,7 +24,7 @@ const roles = [
   {
     value: 'Supplier',
     label: 'تأمین‌کننده',
-    icon: '📦',
+    icon: 'store' as IconName,
     desc: 'قطعات بفروش، قیمت و موجودی بده',
     color: 'border-amber-300 bg-amber-50 hover:border-amber-500',
     active: 'border-amber-500 bg-amber-100 shadow-md',
@@ -107,7 +108,9 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-lg px-4 py-12 sm:px-6">
       <div className="animate-fadeInUp text-center">
-        <span className="text-4xl">🚀</span>
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+          <Ic name="rocket" size={32} />
+        </span>
         <h1 className="mt-3 text-3xl font-black text-ink-900">ثبت‌نام در بساز</h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-ink-500">
           حساب کاربری بسازید و شروع کنید
@@ -133,13 +136,17 @@ export default function RegisterPage() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{r.icon}</span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm">
+                    <Ic name={r.icon} size={20} />
+                  </span>
                   <div>
                     <h3 className="text-base font-bold text-ink-900">{r.label}</h3>
                     <p className="text-xs text-ink-500 mt-0.5">{r.desc}</p>
                   </div>
                   {selectedRole === r.value && (
-                    <span className="mr-auto text-lg">✓</span>
+                    <span className="mr-auto text-brand-600">
+                      <Ic name="check" size={18} strokeWidth={3} />
+                    </span>
                   )}
                 </div>
               </button>
@@ -152,7 +159,8 @@ export default function RegisterPage() {
             disabled={!selectedRole}
             className="btn-primary w-full mt-6 py-3"
           >
-            ادامه ←
+            ادامه
+            <Ic name="arrowLeft" size={16} />
           </button>
         </div>
       )}
@@ -170,9 +178,10 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => setStep('role')}
-              className="text-xs text-ink-400 hover:text-ink-600"
+              className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-ink-600"
             >
-              ← تغییر نقش
+              <Ic name="arrowRight" size={14} />
+              تغییر نقش
             </button>
           </div>
 
@@ -282,7 +291,10 @@ export default function RegisterPage() {
                   در حال ثبت‌نام…
                 </span>
               ) : (
-                '🚀 ثبت‌نام'
+                <span className="flex items-center justify-center gap-2">
+                  <Ic name="userPlus" size={16} />
+                  ثبت‌نام
+                </span>
               )}
             </button>
           </form>

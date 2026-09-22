@@ -10,7 +10,6 @@ import type {
 /** API client — connects to backend via Vite proxy /api → localhost:5090 */
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api'
-
 export class ApiError extends Error {
   status: number
   errors?: string[]
@@ -29,9 +28,11 @@ function getAuthHeaders(): Record<string, string> {
     if (stored) {
       const user = JSON.parse(stored)
       if (user.id && user.role !== 'Guest') {
+        // نام‌های فارسی (غیر ISO-8859-1) را با URI encoding به هدر می‌فرستیم
+        const safeName = encodeURIComponent(user.name || 'کاربر')
         return {
           'X-User-Id': user.id,
-          'X-User-Name': user.name || 'کاربر',
+          'X-User-Name': safeName,
         }
       }
     }
@@ -41,7 +42,7 @@ function getAuthHeaders(): Record<string, string> {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const authHeaders = getAuthHeaders()
-  const contentType = init?.body ? { 'Content-Type': 'application/json' } : {}
+  const contentType: Record<string, string> = init?.body ? { 'Content-Type': 'application/json' } : {}
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {

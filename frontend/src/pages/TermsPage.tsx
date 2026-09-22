@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Ic } from '../lib/icons'
 
 export default function TermsPage() {
   return (
@@ -130,7 +131,7 @@ export default function TermsPage() {
 
       <div className="mt-12 text-center">
         <Link to="/" className="text-sm font-bold text-brand-600 hover:text-brand-700">
-          ← بازگشت به صفحهٔ اصلی
+          <Ic name="arrowRight" size={14} /> بازگشت به صفحهٔ اصلی
         </Link>
       </div>
     </div>

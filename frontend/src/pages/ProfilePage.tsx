@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
-import { useUser, ROLE_LABELS, ROLE_ICONS, type UserRole } from '../lib/UserContext'
+import { Ic, LINK_ICONS, ROLE_ICONS, type IconName } from '../lib/icons'
+import { useUser, ROLE_LABELS, type UserRole } from '../lib/UserContext'
+import Avatar from '../components/Avatar'
 
 interface ProjectSummary {
   id: number
@@ -68,46 +70,46 @@ export default function ProfilePage() {
   const projectCount = projects.length
   const completedCount = projects.filter(p => p.status === 'Completed' || p.status === 'Published').length
 
-  // لینک‌های متناسب با نقش
-  const roleLinks: Record<UserRole, Array<{ to: string; label: string; icon: string }>> = {
+  // لینک‌های متناسب با نقش — آیکون‌ها از `LINK_ICONS` خوانده می‌شوند
+  const roleLinks: Record<UserRole, Array<{ to: string; label: string; icon: IconName }>> = {
     Guest: [
-      { to: '/recipes', label: 'دستورها', icon: '📋' },
-      { to: '/parts', label: 'قطعات', icon: '🧩' },
-      { to: '/makers', label: 'صنعتگران', icon: '🏭' },
-      { to: '/wizard', label: 'ویزارد', icon: '✨' },
+      { to: '/recipes', label: 'دستورها', icon: LINK_ICONS.recipes },
+      { to: '/parts', label: 'قطعات', icon: LINK_ICONS.parts },
+      { to: '/makers', label: 'صنعتگران', icon: LINK_ICONS.makers },
+      { to: '/wizard', label: 'ویزارد', icon: LINK_ICONS.wizard },
     ],
     Member: [
-      { to: '/recipes', label: 'دستورها', icon: '📋' },
-      { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
-      { to: '/makers', label: 'صنعتگران', icon: '🏭' },
-      { to: '/wizard', label: 'ویزارد', icon: '✨' },
+      { to: '/recipes', label: 'دستورها', icon: LINK_ICONS.recipes },
+      { to: '/projects', label: 'پروژه‌ها', icon: LINK_ICONS.projects },
+      { to: '/makers', label: 'صنعتگران', icon: LINK_ICONS.makers },
+      { to: '/wizard', label: 'ویزارد', icon: LINK_ICONS.wizard },
     ],
     Engineer: [
-      { to: '/recipes', label: 'دستورها', icon: '📋' },
-      { to: '/parts', label: 'قطعات', icon: '🧩' },
-      { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
-      { to: '/wizard', label: 'ویزارد', icon: '✨' },
+      { to: '/recipes', label: 'دستورها', icon: LINK_ICONS.recipes },
+      { to: '/parts', label: 'قطعات', icon: LINK_ICONS.parts },
+      { to: '/projects', label: 'پروژه‌ها', icon: LINK_ICONS.projects },
+      { to: '/wizard', label: 'ویزارد', icon: LINK_ICONS.wizard },
     ],
     SafetyReviewer: [
-      { to: '/recipes', label: 'دستورها', icon: '📋' },
-      { to: '/projects', label: 'پروژه‌ها', icon: '📁' },
+      { to: '/recipes', label: 'دستورها', icon: LINK_ICONS.recipes },
+      { to: '/projects', label: 'پروژه‌ها', icon: LINK_ICONS.projects },
     ],
     Supplier: [
-      { to: '/supplier/dashboard', label: 'داشبورد', icon: '📊' },
-      { to: '/supplier/products', label: 'محصولات', icon: '📦' },
-      { to: '/supplier/orders', label: 'سفارشات', icon: '📋' },
+      { to: '/supplier/dashboard', label: 'داشبورد', icon: LINK_ICONS.dashboard },
+      { to: '/supplier/products', label: 'محصولات', icon: LINK_ICONS.orders },
+      { to: '/supplier/orders', label: 'سفارشات', icon: LINK_ICONS.recipes },
     ],
     Maker: [
-      { to: '/maker/dashboard', label: 'داشبورد', icon: '📊' },
-      { to: '/maker/jobs', label: 'کارها', icon: '🔨' },
-      { to: '/maker/services', label: 'خدمات', icon: '🛠️' },
+      { to: '/maker/dashboard', label: 'داشبورد', icon: LINK_ICONS.dashboard },
+      { to: '/maker/jobs', label: 'کارها', icon: LINK_ICONS.jobs },
+      { to: '/maker/services', label: 'خدمات', icon: LINK_ICONS.services },
     ],
     Admin: [
-      { to: '/admin', label: 'داشبورد', icon: '⚙️' },
-      { to: '/admin/users', label: 'کاربران', icon: '👥' },
-      { to: '/admin/recipes', label: 'دستورها', icon: '📋' },
-      { to: '/admin/orders', label: 'سفارشات', icon: '📦' },
-      { to: '/admin/suppliers', label: 'تأمین‌کنندگان', icon: '🏪' },
+      { to: '/admin', label: 'داشبورد', icon: LINK_ICONS.dashboard },
+      { to: '/admin/users', label: 'کاربران', icon: LINK_ICONS.users },
+      { to: '/admin/recipes', label: 'دستورها', icon: LINK_ICONS.recipes },
+      { to: '/admin/orders', label: 'سفارشات', icon: LINK_ICONS.orders },
+      { to: '/admin/suppliers', label: 'تأمین‌کنندگان', icon: LINK_ICONS.suppliers },
     ],
   }
 
@@ -127,11 +129,12 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           {/* Avatar */}
           <div className="flex shrink-0 flex-col items-center gap-3">
-            <span className="grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-teal-600 text-3xl font-extrabold text-white shadow-lg shadow-brand-500/30">
-              {user.name.charAt(0)}
+            <span className="rounded-2xl shadow-lg shadow-brand-500/25">
+              <Avatar name={user.name} size="xl" />
             </span>
-            <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-bold text-brand-700">
-              {ROLE_ICONS[user.role]} {ROLE_LABELS[user.role]}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 px-3 py-1 text-xs font-bold text-brand-700">
+              <Ic name={ROLE_ICONS[user.role]} size={13} />
+              {ROLE_LABELS[user.role]}
             </span>
           </div>
 
@@ -160,8 +163,9 @@ export default function ProfilePage() {
                 <p className="mt-1 text-sm text-ink-500">
                   شناسه: <span className="font-mono text-ink-400 text-xs" dir="ltr">{user.id.slice(0, 8)}…</span>
                 </p>
-                <button type="button" onClick={() => setEditing(true)} className="mt-3 btn-outline text-xs">
-                  ✏️ ویرایش نام
+                <button type="button" onClick={() => setEditing(true)} className="mt-3 inline-flex items-center gap-1.5 btn-outline text-xs">
+                  <Ic name="pencil" size={13} />
+                  ویرایش نام
                 </button>
               </>
             )}
@@ -188,7 +192,7 @@ export default function ProfilePage() {
         {links.map((link) => (
           <Link key={link.to} to={link.to} className="card card-hover group flex items-center gap-3 p-4">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-lg group-hover:scale-110 transition-transform">
-              {link.icon}
+              <Ic name={link.icon} size={20} className="text-brand-600" />
             </span>
             <div>
               <p className="text-sm font-bold text-ink-900">{link.label}</p>
@@ -202,7 +206,7 @@ export default function ProfilePage() {
         <div className="mt-8">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-black text-ink-900">پروژه‌های اخیر</h2>
-            <Link to="/projects" className="text-xs font-bold text-brand-600 hover:text-brand-700">همه ←</Link>
+            <Link to="/projects" className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700">همه<Ic name="arrowLeft" size={13} /></Link>
           </div>
 
           {projectsLoading && (
@@ -215,10 +219,11 @@ export default function ProfilePage() {
 
           {!projectsLoading && projects.length === 0 && (
             <div className="animate-fadeInUp mt-6 rounded-xl border border-dashed border-ink-300 bg-ink-50/50 p-8 text-center">
-              <span className="text-3xl">📁</span>
+              <img src="/empty-folder.svg" alt="" className="mx-auto h-28 w-auto" />
               <p className="mt-3 text-sm font-bold text-ink-600">هنوز پروژه‌ای ندارید</p>
-              <Link to="/recipes" className="btn-primary mt-4 inline-flex text-xs">
-                شروع اولین پروژه ←
+              <Link to="/recipes" className="btn-primary mt-4 inline-flex items-center gap-1.5 text-xs">
+                شروع اولین پروژه
+                <Ic name="arrowLeft" size={14} />
               </Link>
             </div>
           )}
@@ -249,7 +254,10 @@ export default function ProfilePage() {
 
       {/* Account Info */}
       <div className="animate-fadeInUp mt-8 card p-5" style={{ animationDelay: '200ms' }}>
-        <h3 className="text-sm font-bold text-ink-800">ℹ️ دربارهٔ حساب</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-bold text-ink-800">
+          <Ic name="info" size={15} className="text-brand-500" />
+          دربارهٔ حساب
+        </h3>
         <p className="mt-2 text-xs leading-6 text-ink-500">
           در نسخهٔ آزمایشی، احراز هویت واقعی (JWT) متصل نیست. اطلاعات کاربر در مرورگر ذخیره می‌شود.
           شناسهٔ کاربری فعلی شما <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono text-ink-600" dir="ltr">{user.id.slice(0, 8)}…</code> است.

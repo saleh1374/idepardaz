@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import { useUser } from '../lib/UserContext'
+import { Ic } from '../lib/icons'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -69,7 +70,9 @@ export default function LoginPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
         <div className="animate-fadeInUp text-center card p-8">
-          <span className="text-4xl">✅</span>
+          <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-teal-50 text-teal-600">
+            <Ic name="circleCheck" size={34} />
+          </span>
           <h1 className="mt-3 text-2xl font-black text-ink-900">شما وارد شده‌اید</h1>
           <p className="mt-2 text-sm text-ink-500">
             {user.name} — نقش: {user.role === 'Member' ? 'کاربر' : user.role === 'Maker' ? 'صنعتگر' : user.role === 'Supplier' ? 'تأمین‌کننده' : user.role}
@@ -85,7 +88,9 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
       <div className="animate-fadeInUp text-center">
-        <span className="text-4xl">🔐</span>
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+          <Ic name="lock" size={32} />
+        </span>
         <h1 className="mt-3 text-3xl font-black text-ink-900">ورود به بساز</h1>
         <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-ink-500">
           به حساب کاربری خود وارد شوید
@@ -137,7 +142,10 @@ export default function LoginPage() {
                 در حال ورود…
               </span>
             ) : (
-              '🔐 ورود'
+              <span className="flex items-center justify-center gap-2">
+                <Ic name="lock" size={16} />
+                ورود
+              </span>
             )}
           </button>
         </form>
@@ -152,7 +160,10 @@ export default function LoginPage() {
 
       {/* راهنمای ورود آزمایشی */}
       <div className="animate-fadeInUp mt-6 rounded-xl border border-dashed border-ink-200 bg-ink-50 p-4 text-xs leading-6 text-ink-400">
-        <strong className="text-ink-600">💡 راهنمای MVP:</strong>
+        <strong className="flex items-center gap-1.5 text-ink-600">
+          <Ic name="info" size={14} />
+          راهنمای MVP:
+        </strong>
         <br />
         در نسخهٔ آزمایشی، اطلاعات ورود در مرورگر شما ذخیره می‌شود.
         ابتدا از صفحهٔ ثبت‌نام یک حساب بسازید، سپس با همان ایمیل و رمز وارد شوید.

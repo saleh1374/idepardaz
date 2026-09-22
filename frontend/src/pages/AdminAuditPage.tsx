@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
+import { Ic } from '../lib/icons'
 
 interface AuditItem {
   id: number
@@ -41,14 +42,25 @@ export default function AdminAuditPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-ink-900">📝 گزارش عملیات (Audit Log)</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ink-900">
+          <Ic name="notebook" size={26} />
+          گزارش عملیات (Audit Log)
+        </h1>
         <span className="rounded-full bg-ink-100 px-3 py-1 text-sm font-bold text-ink-600">{total} رکورد</span>
       </div>
 
-      {error && <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">❌ {error}</div>}
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+          <Ic name="circleX" size={16} />
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <div className="py-12 text-center text-ink-400">⏳ در حال بارگذاری...</div>
+        <div className="flex items-center justify-center gap-2 py-12 text-center text-ink-400">
+          <Ic name="hourglass" size={16} />
+          در حال بارگذاری...
+        </div>
       ) : (
         <div className="rounded-xl border border-ink-200 bg-white shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
@@ -79,7 +91,7 @@ export default function AdminAuditPage() {
                   <td className="px-5 py-3">
                     {l.dataJson && (
                       <details className="group">
-                        <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700">مشاهده</summary>
+                        <summary className="cursor-pointer inline-flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700">مشاهده <Ic name="arrowLeft" size={13} /></summary>
                         <pre className="mt-1 max-w-xs overflow-x-auto rounded bg-ink-50 p-2 text-[10px] text-ink-600">{l.dataJson}</pre>
                       </details>
                     )}
@@ -96,9 +108,9 @@ export default function AdminAuditPage() {
 
       {total > 50 && (
         <div className="flex items-center justify-center gap-2">
-          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40">قبلی</button>
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40"><Ic name="arrowRight" size={14} /> قبلی</button>
           <span className="text-sm text-ink-500">صفحه {page}</span>
-          <button disabled={logs.length < 50} onClick={() => setPage(p => p + 1)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40">بعدی</button>
+          <button disabled={logs.length < 50} onClick={() => setPage(p => p + 1)} className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 disabled:opacity-40">بعدی <Ic name="arrowLeft" size={14} /></button>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Ic } from '../lib/icons'
 
 interface MakerJob {
   id: number
@@ -80,7 +81,10 @@ export default function MakerJobsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-ink-900">🔨 کارهای من</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900">
+          <Ic name="hammer" size={26} />
+          کارهای من
+        </h1>
         <span className="rounded-full bg-ink-100 px-3 py-1 text-sm font-bold text-ink-600">{jobs.length} کار</span>
       </div>
 
@@ -110,7 +114,7 @@ export default function MakerJobsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-ink-200 bg-white py-16 text-center text-ink-400">
-          <span className="text-4xl">🔨</span>
+          <img src="/empty-search.svg" alt="" className="mx-auto h-32 w-auto" />
           <p className="mt-3 text-sm font-bold">کاری یافت نشد</p>
         </div>
       ) : (
@@ -127,9 +131,18 @@ export default function MakerJobsPage() {
                   </div>
                   <p className="mt-1 text-xs text-ink-400">{j.recipeTitle}</p>
                   <div className="mt-2 flex flex-wrap gap-4 text-xs text-ink-500">
-                    <span>🔧 قطعات: {formatPrice(j.partsCost)}</span>
-                    <span>👷 دستمزد: {formatPrice(j.laborCost)}</span>
-                    <span>🚚 ارسال: {formatPrice(j.shippingCost)}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Ic name="wrench" size={14} />
+                      قطعات: {formatPrice(j.partsCost)}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Ic name="hardHat" size={14} />
+                      دستمزد: {formatPrice(j.laborCost)}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Ic name="truck" size={14} />
+                      ارسال: {formatPrice(j.shippingCost)}
+                    </span>
                   </div>
                   <div className="mt-1 text-xs text-ink-400">
                     وضعیت قطعات: <span className="font-semibold text-ink-600">{partsStatusLabel[j.partsStatus] ?? j.partsStatus}</span>
@@ -139,18 +152,21 @@ export default function MakerJobsPage() {
                   <span className="text-lg font-black text-brand-700">{formatPrice(j.totalCost)}</span>
                   <div className="flex gap-2">
                     {j.status === 'Pending' && (
-                      <button type="button" className="rounded-lg bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700">
-                        ✅ پذیرش
+                      <button type="button" className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700">
+                        <Ic name="check" size={15} />
+                        پذیرش
                       </button>
                     )}
                     {j.status === 'Building' && (
-                      <button type="button" className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700">
-                        🔨 تکمیل ساخت
+                      <button type="button" className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700">
+                        <Ic name="hammer" size={15} />
+                        تکمیل ساخت
                       </button>
                     )}
                     {j.status === 'Ready' && (
-                      <button type="button" className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
-                        🚚 ارسال
+                      <button type="button" className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                        <Ic name="truck" size={15} />
+                        ارسال
                       </button>
                     )}
                     <Link to={`/projects/${j.projectId}`} className="rounded-lg border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-600 hover:bg-ink-50">

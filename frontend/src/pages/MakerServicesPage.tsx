@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Ic } from '../lib/icons'
 
 interface MakerService {
   id: number
@@ -59,7 +60,10 @@ export default function MakerServicesPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-ink-900">🛠️ خدمات من</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900">
+          <Ic name="toolbox" size={26} />
+          خدمات من
+        </h1>
         <button type="button" onClick={() => setShowAdd(true)} className="btn-primary px-5 py-2 text-sm">
           + افزودن خدمت
         </button>
@@ -127,7 +131,7 @@ export default function MakerServicesPage() {
         </div>
       ) : services.length === 0 ? (
         <div className="rounded-xl border border-ink-200 bg-white py-16 text-center text-ink-400">
-          <span className="text-4xl">🛠️</span>
+          <img src="/empty-box.svg" alt="" className="mx-auto h-32 w-auto" />
           <p className="mt-3 text-sm font-bold">هنوز خدمتی ثبت نکرده‌اید</p>
           <p className="mt-1 text-xs">خدمات خود را اضافه کنید تا مشتریان بتوانند از شما سفارش بدهند.</p>
         </div>

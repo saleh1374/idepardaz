@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
+import { Ic } from '../lib/icons'
 
 interface OrderSummary {
   id: number
@@ -98,7 +99,7 @@ export default function OrdersPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="p-10 text-center">
-            <span className="text-4xl">📦</span>
+            <img src="/empty-box.svg" alt="" className="mx-auto h-32 w-auto" />
             <p className="mt-4 text-base font-bold text-ink-600">هنوز سفارشی ثبت نشده</p>
             <p className="mt-1 text-sm text-ink-400">سفارشات شما اینجا نمایش داده خواهند شد.</p>
           </div>
@@ -134,7 +135,7 @@ export default function OrdersPage() {
                         to={`/orders/${o.id}`}
                         className="text-xs font-semibold text-brand-600 hover:text-brand-700"
                       >
-                        جزئیات ←
+                        جزئیات <Ic name="arrowLeft" size={14} />
                       </Link>
                     </td>
                   </tr>
@@ -154,7 +155,7 @@ export default function OrdersPage() {
             onClick={() => setPage((p) => p - 1)}
             className="btn-outline px-4 py-1.5 text-xs disabled:opacity-40"
           >
-            ← قبلی
+            <Ic name="arrowRight" size={14} /> قبلی
           </button>
           <span className="text-sm font-semibold text-ink-600">صفحه {page}</span>
           <button
@@ -163,7 +164,7 @@ export default function OrdersPage() {
             onClick={() => setPage((p) => p + 1)}
             className="btn-outline px-4 py-1.5 text-xs disabled:opacity-40"
           >
-            بعدی →
+            بعدی <Ic name="arrowLeft" size={14} />
           </button>
         </div>
       )}

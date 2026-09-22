@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useUser } from '../lib/UserContext'
+import { Ic } from '../lib/icons'
 
 interface MakerStats {
   totalJobs: number
@@ -118,7 +119,10 @@ export default function MakerDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-ink-900">🏭 داشبورد صنعتگر</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900">
+            <Ic name="factory" size={26} />
+            داشبورد صنعتگر
+          </h1>
           <p className="mt-1 text-sm text-ink-500">
             خوش آمدید، <span className="font-bold text-ink-700">{user.name}</span>
           </p>
@@ -136,26 +140,42 @@ export default function MakerDashboardPage() {
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-xl bg-sky-50 p-4 text-sky-700">
-            <div className="text-2xl">📋</div>
-            <div className="mt-1 text-2xl font-extrabold">{stats.totalJobs}</div>
-            <div className="text-sm font-medium">کل کارها</div>
+        <div className="stagger grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-600">
+              <Ic name="clipboard" size={22} />
+            </span>
+            <div>
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(stats.totalJobs)}</div>
+              <div className="text-xs font-semibold text-ink-500">کل کارها</div>
+            </div>
           </div>
-          <div className="rounded-xl bg-amber-50 p-4 text-amber-700">
-            <div className="text-2xl">🔨</div>
-            <div className="mt-1 text-2xl font-extrabold">{stats.activeJobs}</div>
-            <div className="text-sm font-medium">در حال انجام</div>
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-600">
+              <Ic name="hammer" size={22} />
+            </span>
+            <div>
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(stats.activeJobs)}</div>
+              <div className="text-xs font-semibold text-ink-500">در حال انجام</div>
+            </div>
           </div>
-          <div className="rounded-xl bg-green-50 p-4 text-green-700">
-            <div className="text-2xl">✅</div>
-            <div className="mt-1 text-2xl font-extrabold">{stats.completedJobs}</div>
-            <div className="text-sm font-medium">تکمیل شده</div>
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-green-100 text-green-600">
+              <Ic name="circleCheck" size={22} />
+            </span>
+            <div>
+              <div className="text-xl font-black text-ink-900">{new Intl.NumberFormat('fa-IR').format(stats.completedJobs)}</div>
+              <div className="text-xs font-semibold text-ink-500">تکمیل شده</div>
+            </div>
           </div>
-          <div className="rounded-xl bg-brand-50 p-4 text-brand-700">
-            <div className="text-2xl">💰</div>
-            <div className="mt-1 text-2xl font-extrabold">{formatPrice(stats.totalEarnings)}</div>
-            <div className="text-sm font-medium">درآمد کل</div>
+          <div className="card card-hover flex items-center gap-3 p-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand-100 text-brand-600">
+              <Ic name="wallet" size={22} />
+            </span>
+            <div className="min-w-0">
+              <div className="truncate text-base font-black text-brand-700">{formatPrice(stats.totalEarnings)}</div>
+              <div className="text-xs font-semibold text-ink-500">درآمد کل</div>
+            </div>
           </div>
         </div>
       )}
@@ -166,7 +186,7 @@ export default function MakerDashboardPage() {
         <div className="divide-y divide-ink-50">
           {jobs.length === 0 ? (
             <div className="p-10 text-center text-ink-400">
-              <span className="text-4xl">🔨</span>
+              <img src="/empty-list.svg" alt="" className="mx-auto h-32 w-auto" />
               <p className="mt-3 text-sm font-bold">هنوز کاری ندارید</p>
               <p className="mt-1 text-xs">وقتی مشتری سفارشی بسازد، اینجا ظاهر می‌شود.</p>
             </div>
@@ -181,15 +201,25 @@ export default function MakerDashboardPage() {
                     </span>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-3 text-xs text-ink-500">
-                    <span>🔧 قطعات: {formatPrice(j.partsCost)}</span>
-                    <span>👷 دستمزد: {formatPrice(j.laborCost)}</span>
-                    <span>🚚 ارسال: {formatPrice(j.shippingCost)}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Ic name="wrench" size={14} />
+                      قطعات: {formatPrice(j.partsCost)}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Ic name="hardHat" size={14} />
+                      دستمزد: {formatPrice(j.laborCost)}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Ic name="truck" size={14} />
+                      ارسال: {formatPrice(j.shippingCost)}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-black text-brand-700">{formatPrice(j.totalCost)}</span>
-                  <Link to={`/projects/${j.projectId}`} className="text-xs font-semibold text-brand-600 hover:text-brand-700">
-                    مشاهده ←
+                  <Link to={`/projects/${j.projectId}`} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+                    مشاهده
+                    <Ic name="arrowLeft" size={14} />
                   </Link>
                 </div>
               </div>

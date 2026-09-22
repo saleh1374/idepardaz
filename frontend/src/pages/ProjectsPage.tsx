@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
+import { Ic } from '../lib/icons'
 
 interface Project {
   id: number
@@ -103,13 +104,13 @@ export default function ProjectsPage() {
 
       {!loading && !error && projects.length === 0 && (
         <div className="animate-fadeInUp mt-16 text-center">
-          <span className="text-4xl">📁</span>
+          <img src="/empty-folder.svg" alt="" className="mx-auto h-32 w-auto" />
           <p className="mt-4 text-base font-bold text-ink-600">هنوز پروژه‌ای ندارید</p>
           <p className="mt-1 text-sm text-ink-400">
             از یک دستور ساخت شروع کنید و پروژه ایجاد کنید.
           </p>
           <Link to="/recipes" className="btn-primary mt-5 inline-flex text-sm">
-            مرور دستورها ←
+            مرور دستورها <Ic name="arrowLeft" size={14} />
           </Link>
         </div>
       )}
@@ -126,10 +127,10 @@ export default function ProjectsPage() {
               </div>
 
               <div className="mt-3 space-y-1.5 text-xs text-ink-500">
-                <p>📦 دستور: <span className="font-semibold text-ink-700">{p.recipeId}</span></p>
-                <p>🔖 نسخه: <span className="font-mono text-ink-600" dir="ltr">{p.recipeVersion}</span></p>
-                {p.bomId && <p>💰 BOM: <span className="font-mono text-ink-600" dir="ltr">#{p.bomId}</span></p>}
-                <p>📅 {formatDate(p.createdAt)}</p>
+                <p><Ic name="boxes" size={14} className="inline-block align-middle" /> دستور: <span className="font-semibold text-ink-700">{p.recipeId}</span></p>
+                <p><Ic name="tag" size={14} className="inline-block align-middle" /> نسخه: <span className="font-mono text-ink-600" dir="ltr">{p.recipeVersion}</span></p>
+                {p.bomId && <p><Ic name="wallet" size={14} className="inline-block align-middle" /> BOM: <span className="font-mono text-ink-600" dir="ltr">#{p.bomId}</span></p>}
+                <p><Ic name="calendar" size={14} className="inline-block align-middle" /> {formatDate(p.createdAt)}</p>
               </div>
 
               {/* وضعیت سفارش */}
@@ -137,7 +138,7 @@ export default function ProjectsPage() {
                 <div className="mt-3 rounded-lg border border-ink-200 bg-ink-50 p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">🛒</span>
+                      <Ic name="cart" size={16} />
                       <span className="text-xs font-bold text-ink-700">سفارش #{p.orderId}</span>
                     </div>
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${orderStatusTone[p.orderStatus ?? ''] ?? 'bg-ink-100 text-ink-600'}`}>
@@ -157,21 +158,21 @@ export default function ProjectsPage() {
                   to={`/projects/${p.id}`}
                   className="btn-primary flex-1 text-center text-xs"
                 >
-                  مشاهدهٔ پروژه ←
+                  مشاهدهٔ پروژه <Ic name="arrowLeft" size={14} />
                 </Link>
                 {p.orderId ? (
                   <Link
                     to={`/orders/${p.orderId}`}
                     className="btn-outline flex-1 text-center text-xs"
                   >
-                    🛒 پیگیری سفارش
+                    <Ic name="cart" size={14} /> پیگیری سفارش
                   </Link>
                 ) : p.bomId ? (
                   <Link
                     to={`/projects/${p.id}/buy`}
                     className="btn-outline flex-1 text-center text-xs"
                   >
-                    🛒 خرید قطعات
+                    <Ic name="cart" size={14} /> خرید قطعات
                   </Link>
                 ) : (
                   <Link

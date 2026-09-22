@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ic } from '../lib/icons'
 
 /** دروازهٔ ایمنی (قانون ۳): برای سطح HIGH/CRITICAL قبل از نمایش BOM پذیرش لازم است. */
 export default function SafetyGate({
@@ -25,8 +26,12 @@ export default function SafetyGate({
       }`}
     >
       <div className="flex items-start gap-4">
-        <span className="mt-0.5 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-2xl shadow-sm">
-          {critical ? '⛔' : '⚠️'}
+        <span
+          className={`mt-0.5 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white shadow-sm ${
+            critical ? 'text-rose-600' : 'text-amber-600'
+          }`}
+        >
+          <Ic name="triangleAlert" size={26} />
         </span>
         <div className="min-w-0">
           <h3 className="text-base font-extrabold text-ink-900">

@@ -8,6 +8,7 @@ import SafetyGate from '../components/SafetyGate'
 import ParameterForm, { defaultsFromParameters, type ParamValues } from '../components/ParameterForm'
 import BomPanel from '../components/BomPanel'
 import { useUser } from '../lib/UserContext'
+import { Ic, CATEGORY_ICONS } from '../lib/icons'
 
 const safetyTone: Record<string, Tone> = {
   LOW: 'teal',
@@ -21,13 +22,6 @@ const catLabel: Record<string, string> = {
   power: 'توان',
   cooling: 'خنک‌کننده',
   testing: 'تست',
-}
-
-const catIcon: Record<string, string> = {
-  lighting: '💡',
-  power: '⚡',
-  cooling: '🌀',
-  testing: '🔬',
 }
 
 const roleLabel: Record<string, string> = {
@@ -47,9 +41,10 @@ export default function RecipeDetailPage() {
   const [activeTab, setActiveTab] = useState<'build' | 'details'>('build')
   const [orderMode, setOrderMode] = useState<'none' | 'diy' | 'maker'>('none')
   const [selectedMaker, setSelectedMaker] = useState<string | null>(null)
-  const [makers, setMakers] = useState<Array<{ id: string; displayName: string; city: string; rating: number; specialties: string; laborCost: number }>>([])
+  const [makers, setMakers] = useState<Array<{ id: string; displayName: string; city: string; rating: number; specialties: string }>>([])
   const [orderSubmitting, setOrderSubmitting] = useState(false)
   const [orderResult, setOrderResult] = useState<string | null>(null)
+  const [orderOk, setOrderOk] = useState<boolean | null>(null)
   const [bomTotal, setBomTotal] = useState<number | null>(null)
   const [projectCreated, setProjectCreated] = useState<boolean>(false)
   const [selectedMakerServices, setSelectedMakerServices] = useState<Array<{ id: number; title: string; price: number; unit: string }>>([])
@@ -76,13 +71,12 @@ export default function RecipeDetailPage() {
   // بارگذاری صنعتگران
   useEffect(() => {
     api.listMakers().then(d => {
-      setMakers(d.items.map((m: any) => ({
+      setMakers(d.items.map((m) => ({
         id: m.id,
         displayName: m.displayName,
-        city: m.city,
+        city: m.city ?? '',
         rating: m.rating,
-        specialties: m.specialties,
-        laborCost: m.serviceCount > 0 ? 0 : 0, // default
+        specialties: m.specialties ?? '',
       })))
     }).catch(() => {})
   }, [])
@@ -104,6 +98,7 @@ export default function RecipeDetailPage() {
     }
     setOrderSubmitting(true)
     setOrderResult(null)
+    setOrderOk(null)
     try {
       const project = await api.createProject({
         recipeId: id,
@@ -111,12 +106,14 @@ export default function RecipeDetailPage() {
         parametersJson: JSON.stringify(params),
       })
       setProjectCreated(true)
-      setOrderResult(`✅ پروژه شما ایجاد شد! شماره پروژه: ${project.project.id}. حالا قطعات را تهیه کنید و بسازید.`)
+      setOrderOk(true)
+      setOrderResult(`پروژه شما ایجاد شد! شماره پروژه: ${project.project.id}. حالا قطعات را تهیه کنید و بسازید.`)
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         navigate('/login')
         return
       }
+      setOrderOk(false)
       setOrderResult(e instanceof Error ? e.message : 'خطا در ثبت')
     } finally {
       setOrderSubmitting(false)
@@ -132,6 +129,7 @@ export default function RecipeDetailPage() {
     }
     setOrderSubmitting(true)
     setOrderResult(null)
+    setOrderOk(null)
     try {
       const project = await api.createProject({
         recipeId: id,
@@ -140,12 +138,14 @@ export default function RecipeDetailPage() {
         makerId: selectedMaker,
       })
       setProjectCreated(true)
-      setOrderResult(`✅ سفارش ثبت شد! شماره پروژه: ${project.project.id}. صنعتگر قطعات را تهیه کرده و می‌سازد.`)
+      setOrderOk(true)
+      setOrderResult(`سفارش ثبت شد! شماره پروژه: ${project.project.id}. صنعتگر قطعات را تهیه کرده و می‌سازد.`)
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         navigate('/login')
         return
       }
+      setOrderOk(false)
       setOrderResult(e instanceof Error ? e.message : 'خطا در ثبت')
     } finally {
       setOrderSubmitting(false)
@@ -155,9 +155,12 @@ export default function RecipeDetailPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <span className="text-4xl">😔</span>
+        <img src="/empty-search.svg" alt="" className="mx-auto h-36 w-auto" />
         <p className="mt-3 text-lg font-bold text-rose-600">{error}</p>
-        <Link to="/recipes" className="mt-4 inline-block text-sm font-bold text-brand-600">← بازگشت به دستورها</Link>
+        <Link to="/recipes" className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-brand-600">
+          <Ic name="arrowRight" size={15} />
+          بازگشت به دستورها
+        </Link>
       </div>
     )
   }
@@ -193,7 +196,9 @@ export default function RecipeDetailPage() {
       <div className="mb-6 animate-fadeInUp">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{catIcon[detail.category] ?? '📋'}</span>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+              <Ic name={CATEGORY_ICONS[detail.category] ?? 'clipboard'} size={22} />
+            </span>
             <h1 className="text-2xl font-black leading-10 text-ink-900 sm:text-3xl">{detail.title}</h1>
           </div>
           <Badge tone={safetyTone[detail.safetyLevel] ?? 'ink'}>
@@ -203,7 +208,12 @@ export default function RecipeDetailPage() {
         <div className="mt-3 flex flex-wrap gap-1.5">
           <Badge tone="ink">{catLabel[detail.category] ?? detail.category}</Badge>
           <Badge tone="sky">{difficultyLabel[detail.difficulty] ?? detail.difficulty}</Badge>
-          <Badge tone="ink">⏱ {formatTime(detail.estimatedMinutes)}</Badge>
+          <Badge tone="ink">
+            <span className="inline-flex items-center gap-1">
+              <Ic name="clock" size={12} />
+              {formatTime(detail.estimatedMinutes)}
+            </span>
+          </Badge>
           <Badge tone="brand">نسخه {detail.currentVersion ?? '—'}</Badge>
         </div>
         {payload.summary && <p className="mt-4 text-sm leading-7 text-ink-600">{payload.summary}</p>}
@@ -233,7 +243,10 @@ export default function RecipeDetailPage() {
                   : 'text-ink-500 hover:text-ink-700'
               }`}
             >
-              🔧 ساخت و BOM
+              <span className="inline-flex items-center gap-1.5">
+                <Ic name="wrench" size={15} />
+                ساخت و BOM
+              </span>
             </button>
             <button
               type="button"
@@ -244,7 +257,10 @@ export default function RecipeDetailPage() {
                   : 'text-ink-500 hover:text-ink-700'
               }`}
             >
-              📋 جزئیات دستور
+              <span className="inline-flex items-center gap-1.5">
+                <Ic name="clipboard" size={15} />
+                جزئیات دستور
+              </span>
             </button>
           </div>
 
@@ -275,8 +291,9 @@ export default function RecipeDetailPage() {
                   <h2 className="text-lg font-black text-ink-900">ابزارهای مورد نیاز</h2>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {payload.tools.map((t) => (
-                      <span key={t} className="rounded-lg bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700">
-                        🛠 {t}
+                      <span key={t} className="inline-flex items-center gap-1.5 rounded-lg bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700">
+                        <Ic name="toolbox" size={14} className="text-ink-500" />
+                        {t}
                       </span>
                     ))}
                   </div>
@@ -302,7 +319,10 @@ export default function RecipeDetailPage() {
 
               {/* ═══════ جریان سفارش: DIY vs صنعتگر ═══════ */}
               <section className="mt-10 rounded-2xl border-2 border-brand-200 bg-gradient-to-br from-brand-50 to-teal-50 p-6">
-                <h2 className="text-xl font-black text-ink-900">🛒 چگونه بسازم؟</h2>
+                <h2 className="flex items-center gap-2 text-xl font-black text-ink-900">
+                  <Ic name="cart" size={20} className="text-brand-600" />
+                  چگونه بسازم؟
+                </h2>
                 <p className="mt-2 text-sm text-ink-600">
                   دو راه دارید: خودتان قطعات را بخرید و بسازید، یا به صنعتگران ما بسپارید.
                 </p>
@@ -310,12 +330,15 @@ export default function RecipeDetailPage() {
                 {/* پیام ورود برای مهمانان */}
                 {!hasRole('Member', 'Maker', 'Supplier', 'Admin') && (
                   <div className="mt-4 rounded-xl border border-brand-200 bg-white p-5 text-center">
-                    <span className="text-3xl">🔐</span>
+                    <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                      <Ic name="lock" size={24} />
+                    </span>
                     <p className="mt-2 text-sm font-bold text-ink-800">برای ثبت پروژه وارد شوید</p>
                     <p className="mt-1 text-xs text-ink-500">ابتدا ثبت‌نام کنید یا وارد حساب خود شوید تا بتوانید پروژه ایجاد کنید.</p>
                     <div className="mt-3 flex justify-center gap-2">
-                      <Link to="/login" className="rounded-lg bg-brand-500 px-5 py-2 text-xs font-bold text-white hover:bg-brand-600">
-                        🔐 ورود
+                      <Link to="/login" className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-5 py-2 text-xs font-bold text-white hover:bg-brand-600">
+                        <Ic name="lock" size={13} />
+                        ورود
                       </Link>
                       <Link to="/register" className="rounded-lg border border-ink-200 bg-white px-5 py-2 text-xs font-bold text-ink-700 hover:bg-ink-50">
                         ثبت‌نام
@@ -337,16 +360,18 @@ export default function RecipeDetailPage() {
                       onClick={() => setOrderMode('diy')}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl">🔨</span>
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                          <Ic name="hammer" size={22} />
+                        </span>
                         <div>
                           <h3 className="text-base font-bold text-ink-900">خودم می‌سازم (DIY)</h3>
                           <p className="text-xs text-ink-500">قطعات را می‌خرم و با دستور می‌سازم</p>
                         </div>
                       </div>
                       <ul className="mt-4 space-y-2 text-xs text-ink-600">
-                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قیمت فقط قطعات</li>
-                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> آموزش گام‌به‌گام</li>
-                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> بدون هزینه دستمزد</li>
+                        <li className="flex items-center gap-2"><Ic name="check" size={13} className="text-green-500" strokeWidth={3} /> قیمت فقط قطعات</li>
+                        <li className="flex items-center gap-2"><Ic name="check" size={13} className="text-green-500" strokeWidth={3} /> آموزش گام‌به‌گام</li>
+                        <li className="flex items-center gap-2"><Ic name="check" size={13} className="text-green-500" strokeWidth={3} /> بدون هزینه دستمزد</li>
                       </ul>
                       {orderMode === 'diy' && (
                         <button
@@ -355,7 +380,15 @@ export default function RecipeDetailPage() {
                           disabled={orderSubmitting || projectCreated}
                           className="mt-4 w-full rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-700 disabled:opacity-50"
                         >
-                          {projectCreated ? '✅ ثبت شده' : orderSubmitting ? 'در حال ثبت...' : '🔨 شروع ساخت'}
+                          <span className="flex items-center justify-center gap-2">
+                            {projectCreated ? (
+                              <><Ic name="circleCheck" size={15} />ثبت شده</>
+                            ) : orderSubmitting ? (
+                              'در حال ثبت...'
+                            ) : (
+                              <><Ic name="hammer" size={15} />شروع ساخت</>
+                            )}
+                          </span>
                         </button>
                       )}
                     </div>
@@ -370,16 +403,18 @@ export default function RecipeDetailPage() {
                       onClick={() => setOrderMode('maker')}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl">🏭</span>
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-600">
+                          <Ic name="factory" size={22} />
+                        </span>
                         <div>
                           <h3 className="text-base font-bold text-ink-900">صنعتگر بسازد</h3>
                           <p className="text-xs text-ink-500">قطعات و ساخت را به صنعتگر بسپارید</p>
                         </div>
                       </div>
                       <ul className="mt-4 space-y-2 text-xs text-ink-600">
-                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> قطعات + دستمزد + ارسال</li>
-                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> تحویل آماده</li>
-                        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> ضمانت کیفیت</li>
+                        <li className="flex items-center gap-2"><Ic name="check" size={13} className="text-green-500" strokeWidth={3} /> قطعات + دستمزد + ارسال</li>
+                        <li className="flex items-center gap-2"><Ic name="check" size={13} className="text-green-500" strokeWidth={3} /> تحویل آماده</li>
+                        <li className="flex items-center gap-2"><Ic name="check" size={13} className="text-green-500" strokeWidth={3} /> ضمانت کیفیت</li>
                       </ul>
                       {orderMode === 'maker' && (
                         <div className="mt-4 space-y-3">
@@ -392,7 +427,7 @@ export default function RecipeDetailPage() {
                             >
                               <option value="">انتخاب صنعتگر...</option>
                               {makers.map(m => (
-                                <option key={m.id} value={m.id}>{m.displayName} ({m.city}) — ⭐ {m.rating.toFixed(1)}</option>
+                                <option key={m.id} value={m.id}>{m.displayName} ({m.city}) — امتیاز {m.rating.toFixed(1)}</option>
                               ))}
                             </select>
                           </div>
@@ -402,7 +437,15 @@ export default function RecipeDetailPage() {
                             disabled={orderSubmitting || !selectedMaker || projectCreated}
                             className="w-full rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-teal-700 disabled:opacity-50"
                           >
-                            {projectCreated ? '✅ ثبت شده' : orderSubmitting ? 'در حال ثبت...' : '🏭 ثبت سفارش'}
+                            <span className="flex items-center justify-center gap-2">
+                              {projectCreated ? (
+                                <><Ic name="circleCheck" size={15} />ثبت شده</>
+                              ) : orderSubmitting ? (
+                                'در حال ثبت...'
+                              ) : (
+                                <><Ic name="factory" size={15} />ثبت سفارش</>
+                              )}
+                            </span>
                           </button>
                         </div>
                       )}
@@ -411,11 +454,12 @@ export default function RecipeDetailPage() {
                 )}
 
                 {orderResult && (
-                  <div className={`mt-4 rounded-xl p-4 text-sm font-medium ${
-                    orderResult.includes('✅')
+                  <div className={`mt-4 flex items-start gap-2 rounded-xl p-4 text-sm font-medium ${
+                    orderOk
                       ? 'border border-green-200 bg-green-50 text-green-700'
                       : 'border border-rose-200 bg-rose-50 text-rose-700'
                   }`}>
+                    <Ic name={orderOk ? 'circleCheck' : 'circleX'} size={16} className="mt-0.5 shrink-0" />
                     {orderResult}
                   </div>
                 )}
@@ -423,7 +467,10 @@ export default function RecipeDetailPage() {
                 {/* قیمت تخمینی */}
                 {orderMode === 'maker' && (
                   <div className="mt-4 rounded-xl bg-white p-4 text-sm">
-                    <h4 className="font-bold text-ink-800">💰 تخمین قیمت نهایی</h4>
+                    <h4 className="flex items-center gap-2 font-bold text-ink-800">
+                      <Ic name="wallet" size={16} className="text-brand-500" />
+                      تخمین قیمت نهایی
+                    </h4>
                     <div className="mt-2 space-y-1 text-ink-600">
                       <div className="flex justify-between">
                         <span>قطعات (BOM)</span>
@@ -458,7 +505,10 @@ export default function RecipeDetailPage() {
                 {/* قیمت DIY */}
                 {orderMode === 'diy' && (
                   <div className="mt-4 rounded-xl bg-white p-4 text-sm">
-                    <h4 className="font-bold text-ink-800">💰 هزینه DIY</h4>
+                    <h4 className="flex items-center gap-2 font-bold text-ink-800">
+                      <Ic name="wallet" size={16} className="text-brand-500" />
+                      هزینه DIY
+                    </h4>
                     <div className="mt-2 space-y-1 text-ink-600">
                       <div className="flex justify-between">
                         <span>قطعات (BOM)</span>
@@ -486,7 +536,8 @@ export default function RecipeDetailPage() {
                 {projectCreated && (
                   <div className="mt-4 rounded-xl border-2 border-green-200 bg-green-50 p-5">
                     <h4 className="flex items-center gap-2 text-base font-bold text-green-800">
-                      <span className="text-xl">💳</span> مرحلهٔ پرداخت
+                      <Ic name="creditCard" size={18} />
+                      مرحلهٔ پرداخت
                     </h4>
                     <p className="mt-2 text-sm text-green-700">
                       پروژهٔ شما ثبت شد. برای نهایی‌سازی سفارش، لطفاً هزینه را پرداخت کنید.
@@ -494,15 +545,17 @@ export default function RecipeDetailPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Link
                         to={`/projects`}
-                        className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-700"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-700"
                       >
-                        💳 پرداخت و مشاهده پروژه
+                        <Ic name="creditCard" size={15} />
+                        پرداخت و مشاهده پروژه
                       </Link>
                       <Link
                         to="/"
-                        className="rounded-lg border border-green-300 bg-white px-5 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 bg-white px-5 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50"
                       >
-                        🏠 بازگشت به خانه
+                        <Ic name="home" size={15} />
+                        بازگشت به خانه
                       </Link>
                     </div>
                   </div>
@@ -522,8 +575,10 @@ export default function RecipeDetailPage() {
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {components.map((c) => (
                       <div key={c.logicalPartId} className="card flex items-start gap-3 p-4">
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-sm font-bold text-brand-700">
-                          {c.role === 'Required' ? '●' : '○'}
+                        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
+                          c.role === 'Required' ? 'bg-brand-100 text-brand-700' : 'bg-ink-100 text-ink-500'
+                        }`}>
+                          <Ic name={c.role === 'Required' ? 'circleDot' : 'circle'} size={16} />
                         </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -558,8 +613,9 @@ export default function RecipeDetailPage() {
                   <h2 className="text-lg font-black text-ink-900">مهارت‌های مورد نیاز</h2>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {payload.skills.map((s) => (
-                      <span key={s} className="rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">
-                        ✅ {s}
+                      <span key={s} className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700">
+                        <Ic name="circleCheck" size={14} />
+                        {s}
                       </span>
                     ))}
                   </div>
@@ -583,7 +639,10 @@ export default function RecipeDetailPage() {
                           )}
                           {step.safety && (
                             <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-                              <p className="text-xs leading-6 text-amber-800">⚠️ {step.safety}</p>
+                              <p className="flex items-start gap-1.5 text-xs leading-6 text-amber-800">
+                                <Ic name="triangleAlert" size={14} className="mt-0.5 shrink-0" />
+                                {step.safety}
+                              </p>
                             </div>
                           )}
                         </div>

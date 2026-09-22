@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
+import { Ic } from '../lib/icons'
 
 interface SupplierProduct {
   id: number
@@ -83,7 +84,7 @@ export default function SupplierProductsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-ink-900">📦 محصولات من</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900"><Ic name="boxes" size={26} /> محصولات من</h1>
         <button type="button" onClick={() => setShowAdd(true)} className="btn-primary px-5 py-2 text-sm">
           + افزودن محصول
         </button>
@@ -132,7 +133,7 @@ export default function SupplierProductsPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="rounded-xl border border-ink-200 bg-white py-16 text-center text-ink-400">
-          <span className="text-4xl">📦</span>
+          <img src="/empty-box.svg" alt="" className="mx-auto h-32 w-auto" />
           <p className="mt-3 text-sm font-bold">هنوز محصولی ندارید</p>
         </div>
       ) : (

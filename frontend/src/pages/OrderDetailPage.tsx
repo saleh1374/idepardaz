@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
+import { Ic } from '../lib/icons'
 
 interface OrderItem {
   logicalPartId: string
@@ -84,7 +85,7 @@ export default function OrderDetailPage() {
           {error}
         </div>
         <Link to="/orders" className="btn-outline mt-4 inline-flex text-sm">
-          ← بازگشت به سفارشات
+          <Ic name="arrowRight" size={14} /> بازگشت به سفارشات
         </Link>
       </div>
     )

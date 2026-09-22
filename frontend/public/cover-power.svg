@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none" role="img" aria-label="پوشش دستهٔ توان و باتری">
+  <defs>
+    <linearGradient id="pwrSky" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="0.55" stop-color="#122036"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <radialGradient id="pwrGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cellG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#475569"/>
+      <stop offset="0.5" stop-color="#334155"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="cellLabel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+    <linearGradient id="pwrBank" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <filter id="pwrSoft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="pwrGlowF" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="640" height="360" rx="28" fill="url(#pwrSky)"/>
+  <circle cx="500" cy="120" r="150" fill="url(#pwrGlow)"/>
+  <g fill="#64748b">
+    <circle cx="70" cy="46" r="2" opacity="0.6"/><circle cx="160" cy="80" r="1.6" opacity="0.45"/>
+    <circle cx="260" cy="40" r="2.2" opacity="0.6"/><circle cx="90" cy="140" r="1.5" opacity="0.4"/>
+    <circle cx="600" cy="46" r="1.8" opacity="0.5"/><circle cx="540" cy="40" r="1.4" opacity="0.4"/>
+  </g>
+
+  <!-- جرقه‌های انرژی -->
+  <g stroke="#34d399" stroke-width="3" stroke-linecap="round" opacity="0.8" filter="url(#pwrGlowF)">
+    <path d="M300 96 l12 -18 l6 12 l14 -20"/>
+  </g>
+
+  <!-- سلول ۱۸۶۵۰ بزرگ -->
+  <g transform="rotate(-14 210 230)" filter="url(#pwrSoft)">
+    <rect x="150" y="130" width="86" height="196" rx="16" fill="url(#cellG)"/>
+    <rect x="150" y="130" width="86" height="196" rx="16" stroke="#64748b" stroke-width="2" opacity="0.6"/>
+    <rect x="162" y="150" width="62" height="88" rx="8" fill="url(#cellLabel)"/>
+    <path d="M196 166 l-12 24 h10 l-8 24" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="150" y="118" width="86" height="18" rx="9" fill="#94a3b8"/>
+    <rect x="182" y="112" width="22" height="10" rx="4" fill="#cbd5e1"/>
+    <rect x="162" y="266" width="24" height="8" rx="4" fill="#0f172a" opacity="0.55"/>
+    <rect x="196" y="266" width="24" height="8" rx="4" fill="#0f172a" opacity="0.55"/>
+  </g>
+
+  <!-- پاوربانک -->
+  <g filter="url(#pwrSoft)">
+    <rect x="380" y="120" width="150" height="210" rx="22" fill="url(#pwrBank)"/>
+    <rect x="380" y="120" width="150" height="210" rx="22" stroke="#475569" stroke-width="2"/>
+    <rect x="404" y="150" width="102" height="10" rx="5" fill="#334155"/>
+    <!-- نمایشگر شارژ -->
+    <rect x="404" y="176" width="102" height="58" rx="10" fill="#022c22"/>
+    <rect x="404" y="176" width="102" height="58" rx="10" stroke="#065f46" stroke-width="2"/>
+    <rect x="414" y="222" width="60" height="5" rx="2.5" fill="#10b981"/>
+    <g fill="#34d399" filter="url(#pwrGlowF)">
+      <rect x="414" y="190" width="12" height="22" rx="3"/>
+      <rect x="434" y="190" width="12" height="22" rx="3"/>
+      <rect x="454" y="190" width="12" height="22" rx="3" opacity="0.55"/>
+      <rect x="474" y="190" width="12" height="22" rx="3" opacity="0.3"/>
+    </g>
+    <!-- پورت‌ها -->
+    <rect x="404" y="258" width="34" height="14" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+    <rect x="450" y="258" width="26" height="14" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+    <rect x="404" y="288" width="102" height="8" rx="4" fill="#1e293b"/>
+    <!-- LED نشانگر -->
+    <circle cx="418" cy="310" r="4" fill="#34d399" filter="url(#pwrGlowF)"/>
+  </g>
+
+  <!-- کارت قیمت شناور -->
+  <g filter="url(#pwrSoft)">
+    <rect x="60" y="52" width="176" height="66" rx="14" fill="#ffffff"/>
+    <rect x="76" y="66" width="64" height="9" rx="4.5" fill="#cbd5e1"/>
+    <rect x="76" y="84" width="100" height="14" rx="7" fill="#059669"/>
+    <circle cx="216" cy="72" r="6" fill="#f59e0b"/>
+  </g>
+
+  <!-- آیکون رعد در پس‌زمینه -->
+  <g transform="translate(96 260)" opacity="0.9">
+    <path d="M0 -26 l14 0 l-8 18 l12 0 l-26 34 l8 -24 l-12 0 z" fill="#10b981" filter="url(#pwrGlowF)"/>
+  </g>
+</svg>

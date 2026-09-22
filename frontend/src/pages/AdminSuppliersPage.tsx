@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Ic } from '../lib/icons'
 
 interface Supplier {
   id: string
@@ -50,22 +51,36 @@ export default function AdminSuppliersPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-ink-900">🏪 مدیریت تأمین‌کنندگان</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ink-900">
+          <Ic name="store" size={26} />
+          مدیریت تأمین‌کنندگان
+        </h1>
         <span className="rounded-full bg-ink-100 px-3 py-1 text-sm font-bold text-ink-600">
           {suppliers.filter(s => s.status === 'Pending').length} در انتظار تأیید
         </span>
       </div>
 
-      {error && <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">❌ {error}</div>}
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+          <Ic name="circleX" size={16} />
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <div className="py-12 text-center text-ink-400">⏳ در حال بارگذاری...</div>
+        <div className="flex items-center justify-center gap-2 py-12 text-center text-ink-400">
+          <Ic name="hourglass" size={16} />
+          در حال بارگذاری...
+        </div>
       ) : (
         <div className="space-y-4">
           {/* Pending */}
           {suppliers.filter(s => s.status === 'Pending').length > 0 && (
             <div>
-              <h2 className="mb-3 text-sm font-bold text-amber-700">⏳ در انتظار تأیید</h2>
+              <h2 className="mb-3 flex items-center gap-1.5 text-sm font-bold text-amber-700">
+                <Ic name="hourglass" size={15} />
+                در انتظار تأیید
+              </h2>
               <div className="space-y-3">
                 {suppliers.filter(s => s.status === 'Pending').map((s) => (
                   <div key={s.id} className="rounded-xl border border-amber-200 bg-amber-50 p-5">
@@ -73,9 +88,24 @@ export default function AdminSuppliersPage() {
                       <div>
                         <h3 className="font-bold text-ink-900">{s.name}</h3>
                         <div className="mt-1 flex flex-wrap gap-3 text-xs text-ink-500">
-                          {s.baseUrl && <span>🌐 {s.baseUrl}</span>}
-                          {s.contactEmail && <span>📧 {s.contactEmail}</span>}
-                          {s.contactPhone && <span>📞 {s.contactPhone}</span>}
+                          {s.baseUrl && (
+                            <span className="inline-flex items-center gap-1">
+                              <Ic name="globe" size={13} />
+                              {s.baseUrl}
+                            </span>
+                          )}
+                          {s.contactEmail && (
+                            <span className="inline-flex items-center gap-1">
+                              <Ic name="mail" size={13} />
+                              {s.contactEmail}
+                            </span>
+                          )}
+                          {s.contactPhone && (
+                            <span className="inline-flex items-center gap-1">
+                              <Ic name="phone" size={13} />
+                              {s.contactPhone}
+                            </span>
+                          )}
                         </div>
                         <p className="mt-1 text-xs text-ink-400">
                           ثبت‌نام: {new Date(s.createdAt).toLocaleDateString('fa-IR')}
@@ -85,16 +115,18 @@ export default function AdminSuppliersPage() {
                         <button
                           type="button"
                           onClick={() => updateStatus(s.id, 'Approved')}
-                          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700"
                         >
-                          ✅ تأیید
+                          <Ic name="check" size={15} />
+                          تأیید
                         </button>
                         <button
                           type="button"
                           onClick={() => updateStatus(s.id, 'Rejected')}
-                          className="rounded-lg bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600"
                         >
-                          ❌ رد
+                          <Ic name="close" size={15} />
+                          رد
                         </button>
                       </div>
                     </div>

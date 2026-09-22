@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useUser } from '../lib/UserContext'
 import { formatPrice } from '../lib/format'
+import { Ic } from '../lib/icons'
 
 interface BomItem {
   logicalPartId: string
@@ -44,7 +45,6 @@ const stockTone: Record<string, string> = {
 
 export default function BuyPage() {
   const { id: projectId } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const { user } = useUser()
 
   const [project, setProject] = useState<ProjectInfo | null>(null)
@@ -130,10 +130,10 @@ export default function BuyPage() {
   if (error && !items.length) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <span className="text-4xl">😔</span>
+        <img src="/empty-search.svg" alt="" className="mx-auto h-32 w-auto" />
         <p className="mt-3 text-lg font-bold text-rose-600">{error}</p>
         <Link to={projectId ? `/projects/${projectId}` : '/projects'} className="mt-4 inline-block text-sm font-bold text-brand-600">
-          ← بازگشت به پروژه
+          <Ic name="arrowRight" size={14} /> بازگشت به پروژه
         </Link>
       </div>
     )
@@ -142,17 +142,17 @@ export default function BuyPage() {
   if (orderCreated) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <span className="text-5xl">✅</span>
+        <Ic name="circleCheck" size={64} className="mx-auto text-green-500" />
         <h1 className="mt-4 text-2xl font-black text-ink-900">سفارش ثبت شد!</h1>
         <p className="mt-2 text-sm text-ink-500">
           سفارش شما با موفقیت ثبت شد. قطعات از تأمین‌کنندگان ارسال خواهند شد.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Link to={`/projects/${projectId}`} className="btn-outline text-sm">
-            ← بازگشت به پروژه
+            <Ic name="arrowRight" size={14} /> بازگشت به پروژه
           </Link>
           <Link to="/projects" className="btn-primary text-sm">
-            📁 پروژه‌های من
+            <Ic name="folder" size={14} /> پروژه‌های من
           </Link>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function BuyPage() {
 
       {/* Header */}
       <div className="animate-fadeInUp mb-8">
-        <h1 className="text-2xl font-black text-ink-900 sm:text-3xl">🛒 خرید قطعات</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900 sm:text-3xl"><Ic name="cart" size={26} /> خرید قطعات</h1>
         <p className="mt-2 text-sm text-ink-500">
           قطعات مورد نیاز پروژه از تأمین‌کنندگان مختلف. روی دکمه خرید هر تأمین‌کننده کلیک کنید.
         </p>
@@ -197,7 +197,7 @@ export default function BuyPage() {
               <div className="flex items-center justify-between border-b border-ink-100 bg-ink-50/50 px-5 py-4">
                 <div className="flex items-center gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-lg">
-                    🏪
+                    <Ic name="store" size={20} />
                   </span>
                   <div>
                     <h3 className="font-black text-ink-900">{group.name}</h3>
@@ -213,7 +213,7 @@ export default function BuyPage() {
                       rel="noopener noreferrer"
                       className="btn-primary text-xs"
                     >
-                      🛒 خرید از {group.name}
+                      <Ic name="cart" size={14} /> خرید از {group.name}
                     </a>
                   )}
                 </div>
@@ -257,7 +257,7 @@ export default function BuyPage() {
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-bold text-brand-700 hover:bg-brand-100 transition-colors"
                             >
-                              🔗 خرید
+                              <Ic name="externalLink" size={14} /> خرید
                             </a>
                           ) : (
                             <span className="text-xs text-ink-400">—</span>
@@ -285,14 +285,14 @@ export default function BuyPage() {
           </div>
           <div className="flex gap-3">
             <Link to={`/projects/${projectId}`} className="btn-outline text-sm">
-              ← بازگشت
+              <Ic name="arrowRight" size={14} /> بازگشت
             </Link>
             <button
               type="button"
               onClick={() => setShowConfirm(true)}
               className="btn-primary text-sm"
             >
-              ✅ تأیید و ثبت سفارش
+              <Ic name="circleCheck" size={14} /> تأیید و ثبت سفارش
             </button>
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function BuyPage() {
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-fadeInUp">
-            <h2 className="text-lg font-black text-ink-900">📝 تأیید سفارش</h2>
+            <h2 className="flex items-center gap-2 text-lg font-black text-ink-900"><Ic name="notebook" size={18} /> تأیید سفارش</h2>
             <p className="mt-2 text-sm text-ink-500">
               اطلاعات ارسال خود را وارد کنید. قطعات از تأمین‌کنندگان ارسال خواهند شد.
             </p>
@@ -355,7 +355,11 @@ export default function BuyPage() {
                 disabled={creating || !shippingAddress.trim()}
                 className="btn-primary flex-1 text-sm disabled:opacity-50"
               >
-                {creating ? '⏳ در حال ثبت...' : '✅ ثبت سفارش'}
+                {creating ? (
+                  <><Ic name="hourglass" size={14} /> در حال ثبت...</>
+                ) : (
+                  <><Ic name="circleCheck" size={14} /> ثبت سفارش</>
+                )}
               </button>
             </div>
           </div>

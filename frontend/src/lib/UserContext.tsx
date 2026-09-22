@@ -88,12 +88,6 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   Admin: 'مدیر',
 }
 
-export const ROLE_ICONS: Record<UserRole, string> = {
-  Guest: '👤',
-  Member: '👤',
-  Engineer: '🔧',
-  SafetyReviewer: '🛡️',
-  Supplier: '🏪',
-  Maker: '🏭',
-  Admin: '⚙️',
-}
+// آیکون نقش‌ها در ماژول مرکزی icons.tsx نگهداری می‌شود.
+export { ROLE_ICONS } from './icons'
+

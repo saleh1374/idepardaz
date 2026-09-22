@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Ic } from '../lib/icons'
 
 interface SupplierOrder {
   id: number
@@ -63,7 +64,7 @@ export default function SupplierOrdersPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-black text-ink-900">📋 سفارشات دریافتی</h1>
+      <h1 className="flex items-center gap-2 text-2xl font-black text-ink-900"><Ic name="clipboard" size={26} /> سفارشات دریافتی</h1>
 
       {loading ? (
         <div className="space-y-3">
@@ -73,7 +74,7 @@ export default function SupplierOrdersPage() {
         </div>
       ) : orders.length === 0 ? (
         <div className="rounded-xl border border-ink-200 bg-white py-16 text-center text-ink-400">
-          <span className="text-4xl">📋</span>
+          <img src="/empty-list.svg" alt="" className="mx-auto h-32 w-auto" />
           <p className="mt-3 text-sm font-bold">هنوز سفارشی ندارید</p>
         </div>
       ) : (
@@ -127,14 +128,14 @@ export default function SupplierOrdersPage() {
                     onClick={() => updateStatus(o.id, 'Processing')}
                     className="rounded-lg bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700"
                   >
-                    ✅ تأیید و پردازش
+                    <Ic name="circleCheck" size={14} /> تأیید و پردازش
                   </button>
                   <button
                     type="button"
                     onClick={() => updateStatus(o.id, 'Shipped')}
                     className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
                   >
-                    🚚 ارسال شد
+                    <Ic name="truck" size={14} /> ارسال شد
                   </button>
                 </div>
               )}
@@ -144,7 +145,7 @@ export default function SupplierOrdersPage() {
                   onClick={() => updateStatus(o.id, 'Shipped')}
                   className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
                 >
-                  🚚 ارسال شد
+                  <Ic name="truck" size={14} /> ارسال شد
                 </button>
               )}
             </div>

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
+import { Ic } from '../lib/icons'
+import Avatar from '../components/Avatar'
 
 interface MakerService {
   id: number
@@ -38,9 +40,13 @@ function StarRating({ rating }: { rating: number }) {
   const empty = 5 - full - (half ? 1 : 0)
   return (
     <span className="inline-flex items-center gap-0.5 text-sm text-amber-500">
-      {'★'.repeat(full)}
-      {half && '½'}
-      {'☆'.repeat(empty)}
+      {Array.from({ length: full }).map((_, i) => (
+        <Ic key={`full-${i}`} name="star" size={14} className="fill-current text-amber-400" />
+      ))}
+      {half && <Ic key="half" name="star" size={14} className="fill-current text-amber-400 opacity-40" />}
+      {Array.from({ length: empty }).map((_, i) => (
+        <Ic key={`empty-${i}`} name="star" size={14} className="text-ink-300" />
+      ))}
       <span className="mr-1 font-mono text-ink-500" dir="ltr">{rating.toFixed(1)}</span>
     </span>
   )
@@ -102,11 +108,13 @@ export default function MakerDetailPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
-          ❌ {error}
+        <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+          <Ic name="circleX" size={16} />
+          {error}
         </div>
-        <Link to="/makers" className="mt-4 inline-flex rounded-lg border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50">
-          ← بازگشت به فهرست
+        <Link to="/makers" className="mt-4 inline-flex items-center gap-2 rounded-lg border border-ink-200 px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-ink-50">
+          <Ic name="arrowRight" size={15} />
+          بازگشت به فهرست
         </Link>
       </div>
     )
@@ -133,20 +141,22 @@ export default function MakerDetailPage() {
           {maker.avatarUrl ? (
             <img src={maker.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
           ) : (
-            <span className="grid h-16 w-16 place-items-center rounded-full bg-brand-100 text-2xl font-bold text-brand-700">
-              {maker.displayName?.charAt(0) ?? '?'}
-            </span>
+            <Avatar name={maker.displayName} size="lg" verified={maker.isVerified} />
           )}
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-black text-ink-900">{maker.displayName}</h1>
               {maker.isVerified && (
-                <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-semibold text-teal-700">
-                  ✓ تأیید شده
+                <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-semibold text-teal-700">
+                  <Ic name="check" size={13} />
+                  تأیید شده
                 </span>
               )}
             </div>
-            <p className="mt-1 text-sm text-ink-500">📍 {maker.city || '—'}</p>
+            <p className="mt-1 flex items-center gap-1 text-sm text-ink-500">
+              <Ic name="mapPin" size={14} />
+              {maker.city || '—'}
+            </p>
             <div className="mt-2 flex items-center gap-4">
               <StarRating rating={maker.rating} />
               <span className="text-xs text-ink-400">{maker.ratingCount} امتیاز</span>
@@ -155,9 +165,10 @@ export default function MakerDetailPage() {
           <button
             type="button"
             onClick={() => setQuoteOpen(true)}
-            className="shrink-0 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-brand-700"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-brand-700"
           >
-            📨 درخواست نقل‌قول
+            <Ic name="send" size={16} />
+            درخواست نقل‌قول
           </button>
         </div>
 
@@ -182,7 +193,10 @@ export default function MakerDetailPage() {
 
       {/* Services */}
       <div className="mt-6 rounded-xl border border-ink-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-ink-900">🛠️ خدمات</h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold text-ink-900">
+          <Ic name="toolbox" size={20} />
+          خدمات
+        </h2>
         <p className="mt-1 text-xs text-ink-400">{maker.services.length} خدمت</p>
 
         {maker.services.length > 0 ? (
@@ -220,13 +234,16 @@ export default function MakerDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-ink-900">📨 درخواست نقل‌قول</h2>
+              <h2 className="flex items-center gap-2 text-lg font-bold text-ink-900">
+                <Ic name="send" size={18} />
+                درخواست نقل‌قول
+              </h2>
               <button
                 type="button"
                 onClick={() => { setQuoteOpen(false); setQuoteResult(null) }}
                 className="grid h-8 w-8 place-items-center rounded-lg text-ink-400 hover:bg-ink-100"
               >
-                ✕
+                <Ic name="close" size={18} />
               </button>
             </div>
 

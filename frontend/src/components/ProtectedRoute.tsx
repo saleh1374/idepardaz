@@ -1,5 +1,6 @@
-import { Navigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useUser, type UserRole } from '../lib/UserContext'
+import { Ic } from '../lib/icons'
 
 /**
  * محافظت مسیر — فقط کاربران دارای نقش مجاز به صفحه دسترسی دارند.
@@ -18,14 +19,17 @@ export default function ProtectedRoute({
   if (user.role === 'Guest') {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center sm:px-6">
-        <span className="text-5xl">🔐</span>
+        <span className="grid h-20 w-20 place-items-center rounded-3xl bg-brand-50 text-brand-600 mx-auto">
+          <Ic name="lock" size={40} />
+        </span>
         <h1 className="mt-4 text-2xl font-black text-ink-900">نیاز به ورود</h1>
         <p className="mt-3 text-sm leading-7 text-ink-500">
           برای دسترسی به این صفحه باید وارد حساب کاربری خود شوید.
         </p>
         <div className="mt-6 flex justify-center gap-3">
-          <Link to="/login" className="rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white hover:bg-brand-600">
-            🔐 ورود
+          <Link to="/login" className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white hover:bg-brand-600">
+            <Ic name="lock" size={16} />
+            ورود
           </Link>
           <Link to="/register" className="rounded-xl border border-ink-200 bg-white px-6 py-3 text-sm font-bold text-ink-700 hover:bg-ink-50">
             ثبت‌نام
@@ -47,7 +51,9 @@ export default function ProtectedRoute({
 
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center sm:px-6">
-        <span className="text-5xl">⛔</span>
+        <span className="grid h-20 w-20 place-items-center rounded-3xl bg-rose-50 text-rose-600 mx-auto">
+          <Ic name="shieldAlert" size={40} />
+        </span>
         <h1 className="mt-4 text-2xl font-black text-ink-900">دسترسی غیرمجاز</h1>
         <p className="mt-3 text-sm leading-7 text-ink-500">
           این صفحه فقط برای <strong>{allowedNames}</strong> قابل دسترسی است.

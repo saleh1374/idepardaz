@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import type { RecipeSummary } from '../lib/types'
 import RecipeCard from '../components/RecipeCard'
+import { Ic, type IconName } from '../lib/icons'
 
-const categories = [
-  { value: '', label: 'همه', icon: '📋' },
-  { value: 'lighting', label: 'روشنایی', icon: '💡' },
-  { value: 'power', label: 'توان', icon: '⚡' },
-  { value: 'cooling', label: 'خنک‌کننده', icon: '🌀' },
-  { value: 'testing', label: 'تست', icon: '🔬' },
+const categories: Array<{ value: string; label: string; icon: IconName }> = [
+  { value: '', label: 'همه', icon: 'clipboard' },
+  { value: 'lighting', label: 'روشنایی', icon: 'lightbulb' },
+  { value: 'power', label: 'توان', icon: 'batteryCharging' },
+  { value: 'cooling', label: 'خنک‌کننده', icon: 'fan' },
+  { value: 'testing', label: 'تست', icon: 'microscope' },
 ]
 
 const PAGE_SIZE = 12
@@ -16,11 +18,17 @@ const PAGE_SIZE = 12
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [category, setCategory] = useState<string>('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const category = searchParams.get('category') ?? ''
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+
+  const setCategory = (value: string) => {
+    setPage(1)
+    setSearchParams(value ? { category: value } : {}, { replace: true })
+  }
 
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1) }, 350)
@@ -75,14 +83,14 @@ export default function RecipesPage() {
             <button
               key={cat.value}
               type="button"
-              onClick={() => { setCategory(cat.value); setPage(1) }}
+              onClick={() => setCategory(cat.value)}
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
                 category === cat.value
                   ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/30'
                   : 'border border-ink-200 bg-white text-ink-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700'
               }`}
             >
-              <span className="ml-1">{cat.icon}</span>
+              <Ic name={cat.icon} size={14} className="ml-1 inline-block align-[-2px]" />
               {cat.label}
             </button>
           ))}
@@ -90,7 +98,8 @@ export default function RecipesPage() {
       </div>
 
       {error && (
-        <div className="animate-fadeIn mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+        <div className="animate-fadeIn mt-6 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+          <Ic name="alertCircle" size={17} className="mt-0.5 shrink-0" />
           {error}
         </div>
       )}
@@ -105,7 +114,7 @@ export default function RecipesPage() {
 
       {recipes && recipes.length === 0 && !error && (
         <div className="animate-fadeInUp mt-16 text-center">
-          <span className="text-4xl">🔍</span>
+          <img src="/empty-search.svg" alt="" className="mx-auto h-40 w-auto" />
           <p className="mt-4 text-base font-bold text-ink-600">
             دستوری با این فیلترها پیدا نشد
           </p>
@@ -132,9 +141,10 @@ export default function RecipesPage() {
             type="button"
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="btn-outline px-4 py-1.5 text-xs disabled:opacity-40"
+            className="btn-outline inline-flex items-center gap-1 px-4 py-1.5 text-xs disabled:opacity-40"
           >
-            ← قبلی
+            <Ic name="arrowRight" size={13} />
+            قبلی
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
@@ -165,9 +175,10 @@ export default function RecipesPage() {
             type="button"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="btn-outline px-4 py-1.5 text-xs disabled:opacity-40"
+            className="btn-outline inline-flex items-center gap-1 px-4 py-1.5 text-xs disabled:opacity-40"
           >
-            بعدی →
+            بعدی
+            <Ic name="arrowLeft" size={13} />
           </button>
         </div>
       )}

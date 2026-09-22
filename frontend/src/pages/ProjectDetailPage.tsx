@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatPrice } from '../lib/format'
+import { Ic } from '../lib/icons'
 
 interface ProjectDetail {
   id: number
@@ -111,6 +112,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true)
   const [changingStatus, setChangingStatus] = useState(false)
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
+  const [statusOk, setStatusOk] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -139,12 +141,15 @@ export default function ProjectDetailPage() {
     if (!id) return
     setChangingStatus(true)
     setStatusMsg(null)
+    setStatusOk(null)
     try {
       await api.changeProjectStatus(Number(id), newStatus)
       setProject((p) => p ? { ...p, status: newStatus } : p)
-      setStatusMsg(`✅ وضعیت به «${statusLabel[newStatus] ?? newStatus}» تغییر کرد`)
+      setStatusOk(true)
+      setStatusMsg(`وضعیت به «${statusLabel[newStatus] ?? newStatus}» تغییر کرد`)
     } catch (e) {
-      setStatusMsg(e instanceof Error ? `❌ ${e.message}` : '❌ خطا در تغییر وضعیت')
+      setStatusOk(false)
+      setStatusMsg(e instanceof Error ? e.message : 'خطا در تغییر وضعیت')
     } finally {
       setChangingStatus(false)
     }
@@ -162,9 +167,9 @@ export default function ProjectDetailPage() {
   if (error || !project) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <span className="text-4xl">😔</span>
+        <img src="/empty-search.svg" alt="" className="mx-auto h-32 w-auto" />
         <p className="mt-3 text-lg font-bold text-rose-600">{error ?? 'پروژه یافت نشد'}</p>
-        <Link to="/projects" className="mt-4 inline-block text-sm font-bold text-brand-600">← بازگشت به پروژه‌ها</Link>
+        <Link to="/projects" className="mt-4 inline-block text-sm font-bold text-brand-600"><Ic name="arrowRight" size={14} /> بازگشت به پروژه‌ها</Link>
       </div>
     )
   }
@@ -197,11 +202,11 @@ export default function ProjectDetailPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-ink-500">
-          <span>📦 دستور: <Link to={`/recipes/${encodeURIComponent(project.recipeId)}`} className="font-semibold text-brand-600 hover:underline">{project.recipeId}</Link></span>
-          <span>🔖 نسخه: <span className="font-mono text-ink-600" dir="ltr">{project.recipeVersion}</span></span>
-          {project.bomId && <span>💰 BOM: <span className="font-mono text-ink-600" dir="ltr">#{project.bomId}</span></span>}
-          <span>👤 {project.userDisplayName}</span>
-          <span>📅 {formatDate(project.createdAt)}</span>
+          <span className="inline-flex items-center gap-1.5"><Ic name="boxes" size={14} /> دستور: <Link to={`/recipes/${encodeURIComponent(project.recipeId)}`} className="font-semibold text-brand-600 hover:underline">{project.recipeId}</Link></span>
+          <span className="inline-flex items-center gap-1.5"><Ic name="tag" size={14} /> نسخه: <span className="font-mono text-ink-600" dir="ltr">{project.recipeVersion}</span></span>
+          {project.bomId && <span className="inline-flex items-center gap-1.5"><Ic name="wallet" size={14} /> BOM: <span className="font-mono text-ink-600" dir="ltr">#{project.bomId}</span></span>}
+          <span className="inline-flex items-center gap-1.5"><Ic name="user" size={14} /> {project.userDisplayName}</span>
+          <span className="inline-flex items-center gap-1.5"><Ic name="calendar" size={14} /> {formatDate(project.createdAt)}</span>
         </div>
       </div>
 
@@ -218,12 +223,23 @@ export default function ProjectDetailPage() {
                 disabled={changingStatus}
                 className="btn-outline text-xs"
               >
-                {changingStatus ? '⏳' : '→'} {statusLabel[ns] ?? ns}
+                {changingStatus ? (
+                  <>
+                    <Ic name="hourglass" size={14} /> {statusLabel[ns] ?? ns}
+                  </>
+                ) : (
+                  <>
+                    {statusLabel[ns] ?? ns} <Ic name="arrowLeft" size={14} />
+                  </>
+                )}
               </button>
             ))}
           </div>
           {statusMsg && (
-            <p className="mt-3 text-sm font-medium text-ink-600">{statusMsg}</p>
+            <p className="mt-3 text-sm font-medium text-ink-600">
+              {statusOk ? <Ic name="circleCheck" size={14} className="inline-block align-middle" /> : <Ic name="circleX" size={14} className="inline-block align-middle" />}{' '}
+              {statusMsg}
+            </p>
           )}
         </div>
       )}
@@ -231,7 +247,7 @@ export default function ProjectDetailPage() {
       {/* Parameters */}
       {project.parameters && Object.keys(project.parameters).length > 0 && (
         <div className="animate-fadeIn card mb-6 p-5">
-          <h3 className="mb-3 text-sm font-bold text-ink-800">⚙️ پارامترهای انتخاب‌شده</h3>
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink-800"><Ic name="settings" size={16} /> پارامترهای انتخاب‌شده</h3>
           <div className="flex flex-wrap gap-2">
             {Object.entries(project.parameters).map(([k, v]) => (
               <span key={k} className="rounded-lg bg-ink-100 px-3 py-1.5 text-xs font-semibold text-ink-700">
@@ -247,16 +263,20 @@ export default function ProjectDetailPage() {
       {bom && bom.items.length > 0 && (
         <div className="animate-fadeIn card p-5">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-ink-800">💰 لیست قطعات (BOM)</h3>
+            <h3 className="flex items-center gap-2 text-sm font-bold text-ink-800"><Ic name="wallet" size={16} /> لیست قطعات (BOM)</h3>
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${bom.isValid ? 'bg-brand-100 text-brand-700' : 'bg-rose-100 text-rose-700'}`}>
-              {bom.isValid ? '✅ معتبر' : '❌ نامعتبر'}
+              {bom.isValid ? (
+                <><Ic name="circleCheck" size={13} /> معتبر</>
+              ) : (
+                <><Ic name="circleX" size={13} /> نامعتبر</>
+              )}
             </span>
           </div>
 
           {bom.warnings.length > 0 && (
             <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
               {bom.warnings.map((w, i) => (
-                <p key={i} className="text-xs text-amber-800">⚠️ {w}</p>
+                <p key={i} className="text-xs text-amber-800"><Ic name="alert" size={13} className="inline-block align-middle" /> {w}</p>
               ))}
             </div>
           )}
@@ -306,13 +326,13 @@ export default function ProjectDetailPage() {
             </div>
             <div className="flex gap-2">
               <Link to={`/recipes/${encodeURIComponent(project.recipeId)}`} className="btn-outline text-xs">
-                🔧 مشاهدهٔ دستور
+                <Ic name="wrench" size={14} /> مشاهدهٔ دستور
               </Link>
               <Link
                 to={`/projects/${project.id}/buy`}
                 className="btn-primary text-xs"
               >
-                🛒 خرید قطعات
+                <Ic name="cart" size={14} /> خرید قطعات
               </Link>
             </div>
           </div>
@@ -327,9 +347,9 @@ export default function ProjectDetailPage() {
 
       {!project.bomId && (
         <div className="card p-5 text-center text-sm text-ink-500">
-          <p>💡 BOM برای این پروژه هنوز ساخته نشده.</p>
+          <p className="flex items-center justify-center gap-2"><Ic name="lightbulb" size={14} /> BOM برای این پروژه هنوز ساخته نشده.</p>
           <Link to={`/recipes/${encodeURIComponent(project.recipeId)}`} className="mt-3 inline-block text-sm font-bold text-brand-600">
-            رفتن به دستور ←
+            رفتن به دستور <Ic name="arrowLeft" size={14} />
           </Link>
         </div>
       )}
